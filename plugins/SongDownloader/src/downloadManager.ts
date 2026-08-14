@@ -1,6 +1,13 @@
 import { Tracer, type LunaUnload } from "@luna/core";
 import { MediaItem, safeInterval, type MediaCollection, type MediaFormat } from "@luna/lib";
-import { fileExists, getNativeDownloadProgress, nativeDownloadTrack, saveLyricsFile } from "./fileUtils.native";
+import {
+	deleteCorruptFile,
+	fileExists,
+	getNativeDownloadProgress,
+	nativeDownloadTrack,
+	saveLyricsFile,
+	verifyAudioFileIntegrity,
+} from "./fileUtils.native";
 import { getDownloadFolder, getDownloadPath, getFileName } from "./helpers";
 import { settings } from "./Settings";
 
@@ -465,13 +472,26 @@ class DownloadManager {
 
 			track.filePath = Array.isArray(path) ? path.join("/") : path;
 
-			// Smart Skip check: If file already exists on disk
+			// Smart Skip check + Audio Integrity Verification
 			if (settings.skipExisting && (await fileExists(path))) {
-				track.status = "completed";
-				track.progressPercent = 100;
-				track.statusText = track.formatInfo ? `Already downloaded (${track.formatInfo})` : "Already downloaded";
-				this.notify();
-				return;
+				let isCorrupted = false;
+
+				if (settings.verifyIntegrity) {
+					const integrity = await verifyAudioFileIntegrity(path);
+					if (!integrity.isValid) {
+						isCorrupted = true;
+						trace.warn(`Existing file corrupted for ${track.title}: ${integrity.error}. Re-downloading cleanly...`);
+						await deleteCorruptFile(path);
+					}
+				}
+
+				if (!isCorrupted) {
+					track.status = "completed";
+					track.progressPercent = 100;
+					track.statusText = track.formatInfo ? `Verified (${track.formatInfo})` : "Verified & Already exists";
+					this.notify();
+					return;
+				}
 			}
 
 			if (this.cancelRequested || this.state.status === "cancelling" || this.state.status === "cancelled") {
@@ -510,10 +530,22 @@ class DownloadManager {
 			);
 
 			try {
-				// True parallel native download bypassing Luna's Semaphore(1) bottleneck
+				// True parallel native download
 				await nativeDownloadTrack(playbackInfo, path, flacTags);
 				stopProgress = true;
 				progressInterval();
+
+				// Verify integrity of newly downloaded file (FLAC header and STREAMINFO block)
+				if (settings.verifyIntegrity) {
+					track.statusText = "Verifying audio stream integrity...";
+					this.notify();
+
+					const integrity = await verifyAudioFileIntegrity(path);
+					if (!integrity.isValid) {
+						await deleteCorruptFile(path);
+						throw new Error(`Corrupted file: ${integrity.error}`);
+					}
+				}
 
 				// Ensure format info is populated on complete
 				if (!track.formatInfo) {
@@ -539,7 +571,7 @@ class DownloadManager {
 
 				track.status = "completed";
 				track.progressPercent = 100;
-				track.statusText = track.formatInfo ? `Downloaded (${track.formatInfo})` : "Completed";
+				track.statusText = track.formatInfo ? `Verified (${track.formatInfo})` : "Completed & Verified";
 			} catch (downloadErr) {
 				stopProgress = true;
 				progressInterval();

@@ -17,6 +17,7 @@ export type Settings = {
 	skipExisting: boolean;
 	saveLrcFile: boolean;
 	dynamicTheme: boolean;
+	verifyIntegrity: boolean;
 };
 
 export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDownloader", {
@@ -27,6 +28,7 @@ export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDown
 	skipExisting: true,
 	saveLrcFile: true,
 	dynamicTheme: true,
+	verifyIntegrity: true,
 });
 
 // Sanitize and ensure persistent defaults
@@ -36,6 +38,7 @@ if (settings.skipExisting === undefined) settings.skipExisting = true;
 if (settings.saveLrcFile === undefined) settings.saveLrcFile = true;
 if (settings.dynamicTheme === undefined) settings.dynamicTheme = true;
 if (settings.useRealMAX === undefined) settings.useRealMAX = true;
+if (settings.verifyIntegrity === undefined) settings.verifyIntegrity = true;
 
 export const Settings = () => {
 	const [downloadQuality, setDownloadQuality] = React.useState(settings.downloadQuality);
@@ -46,6 +49,7 @@ export const Settings = () => {
 	const [skipExisting, setSkipExisting] = React.useState(settings.skipExisting ?? true);
 	const [saveLrcFile, setSaveLrcFile] = React.useState(settings.saveLrcFile ?? true);
 	const [dynamicTheme, setDynamicTheme] = React.useState(settings.dynamicTheme ?? true);
+	const [verifyIntegrity, setVerifyIntegrity] = React.useState(settings.verifyIntegrity ?? true);
 
 	// Sync state bidirectionally with DownloadManager
 	useEffect(() => {
@@ -98,8 +102,18 @@ export const Settings = () => {
 				}}
 			/>
 			<LunaSwitchSetting
+				title="Verify file integrity (Check corrupted/broken files)"
+				desc="Inspects FLAC headers and STREAMINFO blocks to guarantee uncorrupted audio. Auto-replaces corrupted files."
+				checked={verifyIntegrity}
+				onChange={(_: any, checked: boolean) => {
+					settings.verifyIntegrity = checked;
+					setVerifyIntegrity(checked);
+					downloadManager.notifySettingsChanged();
+				}}
+			/>
+			<LunaSwitchSetting
 				title="Skip already downloaded tracks"
-				desc="Automatically checks if the file already exists on disk and skips re-downloading"
+				desc="Automatically checks if a valid file already exists on disk and skips re-downloading"
 				checked={skipExisting}
 				onChange={(_: any, checked: boolean) => {
 					settings.skipExisting = checked;
