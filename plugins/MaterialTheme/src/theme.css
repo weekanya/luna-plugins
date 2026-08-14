@@ -1,0 +1,384 @@
+/* ==========================================================================
+   Material Design 3 (Expressive) Global Theme for Tidal
+   Author: weekanya
+   ========================================================================== */
+
+:root {
+	/* MD3 Dark Color Tokens (HCT) */
+	--md-sys-color-primary: #d0bcff;
+	--md-sys-color-on-primary: #381e72;
+	--md-sys-color-primary-container: #4f378b;
+	--md-sys-color-on-primary-container: #eaddff;
+
+	--md-sys-color-secondary: #ccc2dc;
+	--md-sys-color-on-secondary: #332d41;
+	--md-sys-color-secondary-container: #4a4458;
+	--md-sys-color-on-secondary-container: #e8def8;
+
+	--md-sys-color-surface: #141218;
+	--md-sys-color-surface-container-low: #1d1b20;
+	--md-sys-color-surface-container: #211f26;
+	--md-sys-color-surface-container-high: #2b2930;
+	--md-sys-color-surface-container-highest: #36343b;
+
+	--md-sys-color-on-surface: #e6e0e9;
+	--md-sys-color-on-surface-variant: #cac4d0;
+	--md-sys-color-outline: #938f99;
+	--md-sys-color-outline-variant: #49454f;
+
+	/* MD3 Shape Tokens */
+	--md-shape-corner-small: 8px;
+	--md-shape-corner-medium: 12px;
+	--md-shape-corner-large: 16px;
+	--md-shape-corner-extra-large: 28px;
+	--md-shape-corner-full: 9999px;
+
+	/* Tidal System Wave Variable Overrides */
+	--wave-color-solid-accent-fill: var(--md-sys-color-primary) !important;
+	--wave-color-interactive-primary: var(--md-sys-color-primary) !important;
+	--wave-color-solid-base-primary: var(--md-sys-color-surface) !important;
+	--wave-color-solid-base-secondary: var(--md-sys-color-surface-container) !important;
+	--wave-color-background-primary: var(--md-sys-color-surface) !important;
+	--wave-color-background-secondary: var(--md-sys-color-surface-container-low) !important;
+	--wave-color-background-tertiary: var(--md-sys-color-surface-container-high) !important;
+	--wave-color-text-primary: var(--md-sys-color-on-surface) !important;
+	--wave-color-text-secondary: var(--md-sys-color-on-surface-variant) !important;
+}
+
+/* ==========================================================================
+   Global Base & Typography
+   ========================================================================== */
+
+body,
+#wimp,
+#appRoot {
+	background-color: var(--md-sys-color-surface) !important;
+	color: var(--md-sys-color-on-surface) !important;
+	font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif !important;
+	transition: background-color 0.4s ease;
+}
+
+/* Custom MD3 Minimal Scrollbar */
+::-webkit-scrollbar {
+	width: 6px !important;
+	height: 6px !important;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent !important;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--md-sys-color-outline-variant) !important;
+	border-radius: 3px !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--md-sys-color-outline) !important;
+}
+
+/* ==========================================================================
+   MD3 Navigation Drawer / Sidebar (#sidebar)
+   ========================================================================== */
+
+#sidebar,
+[class*="sidebarWrapper"],
+[class*="sidebarContainer"] {
+	background-color: var(--md-sys-color-surface-container-low) !important;
+	border-right: 1px solid var(--md-sys-color-outline-variant) !important;
+	box-shadow: none !important;
+	transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+/* Sidebar Navigation Items */
+#sidebar [class*="sidebarItem"],
+#sidebar [class*="navItem"],
+#sidebar [class*="link"] {
+	border-radius: var(--md-shape-corner-full) !important;
+	margin: 2px 8px !important;
+	padding: 8px 16px !important;
+	font-weight: 500 !important;
+	font-size: 13.5px !important;
+	color: var(--md-sys-color-on-surface-variant) !important;
+	transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1), color 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+/* Sidebar Item Hover (MD3 State Layer) */
+#sidebar [class*="sidebarItem"]:hover,
+#sidebar [class*="navItem"]:hover,
+#sidebar [class*="link"]:hover {
+	background-color: var(--md-sys-color-surface-container-high) !important;
+	color: var(--md-sys-color-on-surface) !important;
+}
+
+/* Sidebar Active / Selected Tab (MD3 Pill Indicator) */
+#sidebar [class*="active"],
+#sidebar [aria-current="page"],
+#sidebar [class*="sidebarItem"][class*="selected"],
+#sidebar [class*="navItem"][class*="selected"] {
+	background-color: var(--md-sys-color-secondary-container) !important;
+	color: var(--md-sys-color-on-secondary-container) !important;
+	font-weight: 600 !important;
+}
+
+/* Sidebar Headings & Divider */
+#sidebar [class*="header"],
+#sidebar [class*="title"] {
+	color: var(--md-sys-color-on-surface-variant) !important;
+	font-size: 11px !important;
+	text-transform: uppercase !important;
+	letter-spacing: 0.8px !important;
+	font-weight: 700 !important;
+	padding: 12px 16px 4px 16px !important;
+}
+
+/* ==========================================================================
+   MD3 Top Bar & Search Header
+   ========================================================================== */
+
+[class*="mainContainer"] > [class*="bar"],
+[class*="topBar"],
+[class*="headerBar"] {
+	background-color: var(--md-sys-color-surface) !important;
+	border-bottom: 1px solid var(--md-sys-color-outline-variant) !important;
+}
+
+/* Search Bar (MD3 Pill Style Search) */
+[class*="searchBar"],
+[class*="searchInput"],
+input[type="search"],
+input[type="text"][class*="search"] {
+	background-color: var(--md-sys-color-surface-container-high) !important;
+	border: 1px solid var(--md-sys-color-outline-variant) !important;
+	border-radius: var(--md-shape-corner-full) !important;
+	color: var(--md-sys-color-on-surface) !important;
+	padding: 8px 18px !important;
+	font-size: 13.5px !important;
+	transition: border-color 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+[class*="searchBar"]:focus-within,
+input[type="search"]:focus,
+input[type="text"][class*="search"]:focus {
+	border-color: var(--md-sys-color-primary) !important;
+	box-shadow: 0 0 0 1px var(--md-sys-color-primary) !important;
+	background-color: var(--md-sys-color-surface-container-highest) !important;
+	outline: none !important;
+}
+
+/* Navigation History Arrow Buttons (Circle Icon Buttons) */
+button[class*="navigationButton"],
+button[class*="arrowButton"],
+[class*="historyButtons"] button {
+	border-radius: var(--md-shape-corner-full) !important;
+	background-color: var(--md-sys-color-surface-container-high) !important;
+	border: 1px solid var(--md-sys-color-outline-variant) !important;
+	color: var(--md-sys-color-on-surface) !important;
+	transition: background-color 0.2s, transform 0.15s !important;
+}
+
+button[class*="navigationButton"]:hover,
+button[class*="arrowButton"]:hover,
+[class*="historyButtons"] button:hover {
+	background-color: var(--md-sys-color-surface-container-highest) !important;
+	border-color: var(--md-sys-color-primary) !important;
+}
+
+/* ==========================================================================
+   MD3 Main Content, Cards & Grid Elements
+   ========================================================================== */
+
+main,
+[class*="mainContainer"],
+[class*="contentWrapper"] {
+	background-color: var(--md-sys-color-surface) !important;
+}
+
+/* Album & Playlist Cards */
+[class*="gridItem"],
+[class*="mediaCard"],
+[class*="albumCard"],
+[class*="cardContainer"] {
+	border-radius: var(--md-shape-corner-large) !important;
+	background-color: var(--md-sys-color-surface-container-low) !important;
+	border: 1px solid var(--md-sys-color-outline-variant) !important;
+	padding: 12px !important;
+	box-sizing: border-box !important;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+	transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.25s cubic-bezier(0.2, 0, 0, 1),
+		border-color 0.25s cubic-bezier(0.2, 0, 0, 1), background-color 0.25s !important;
+}
+
+[class*="gridItem"]:hover,
+[class*="mediaCard"]:hover,
+[class*="albumCard"]:hover,
+[class*="cardContainer"]:hover {
+	transform: translateY(-4px) !important;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+	border-color: var(--md-sys-color-primary) !important;
+	background-color: var(--md-sys-color-surface-container) !important;
+}
+
+/* Album Cover Images in Cards */
+[class*="mediaCard"] img,
+[class*="albumCard"] img,
+[class*="cardContainer"] img,
+[class*="imageWrapper"] img {
+	border-radius: var(--md-shape-corner-medium) !important;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* ==========================================================================
+   MD3 Tracklist Rows & Tables
+   ========================================================================== */
+
+[class*="trackItem"],
+[class*="trackRow"],
+[data-test="track"],
+[class*="tableRow"] {
+	border-radius: var(--md-shape-corner-medium) !important;
+	margin: 2px 0 !important;
+	padding: 8px 12px !important;
+	transition: background-color 0.15s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+[class*="trackItem"]:hover,
+[class*="trackRow"]:hover,
+[data-test="track"]:hover,
+[class*="tableRow"]:hover {
+	background-color: var(--md-sys-color-surface-container-high) !important;
+}
+
+/* Currently Playing Track Highlight */
+[class*="trackItem"][class*="playing"],
+[class*="trackRow"][class*="active"],
+[class*="trackItem"][class*="active"] {
+	background-color: var(--md-sys-color-surface-container) !important;
+	border-left: 3px solid var(--md-sys-color-primary) !important;
+}
+
+[class*="trackItem"][class*="playing"] [class*="title"],
+[class*="trackRow"][class*="active"] [class*="title"] {
+	color: var(--md-sys-color-primary) !important;
+	font-weight: 600 !important;
+}
+
+/* ==========================================================================
+   MD3 Player Bar (#footerPlayer) - Floating Island Style
+   ========================================================================== */
+
+#footerPlayer,
+[class*="footerPlayerContainer"],
+[class*="bottomPlayer"] {
+	background: rgba(28, 26, 33, 0.92) !important;
+	backdrop-filter: blur(24px) saturate(180%) !important;
+	-webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+	border-top: 1px solid var(--md-sys-color-outline-variant) !important;
+	box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.45) !important;
+	padding: 10px 24px !important;
+	transition: background 0.4s ease, border-color 0.4s ease;
+}
+
+/* Player Bar Album Art */
+#footerPlayer [class*="mediaItemImage"],
+#footerPlayer img {
+	border-radius: var(--md-shape-corner-small) !important;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Play / Pause Button as Material 3 Elevated FAB */
+#footerPlayer button[class*="playButton"],
+#footerPlayer button[data-test="play-button"],
+#footerPlayer [class*="playbackControls"] button[class*="primary"] {
+	width: 44px !important;
+	height: 44px !important;
+	border-radius: var(--md-shape-corner-full) !important;
+	background: var(--md-sys-color-primary) !important;
+	color: var(--md-sys-color-on-primary) !important;
+	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35) !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s, background-color 0.4s !important;
+}
+
+#footerPlayer button[class*="playButton"]:hover,
+#footerPlayer button[data-test="play-button"]:hover {
+	transform: scale(1.08) !important;
+	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5) !important;
+	filter: brightness(1.08) !important;
+}
+
+#footerPlayer button[class*="playButton"]:active {
+	transform: scale(0.96) !important;
+}
+
+/* Player Secondary Action Buttons (Skip, Shuffle, Repeat) */
+#footerPlayer button:not([class*="playButton"]):not([data-test="play-button"]) {
+	border-radius: var(--md-shape-corner-full) !important;
+	color: var(--md-sys-color-on-surface-variant) !important;
+	transition: color 0.15s, background-color 0.15s !important;
+}
+
+#footerPlayer button:not([class*="playButton"]):not([data-test="play-button"]):hover {
+	color: var(--md-sys-color-on-surface) !important;
+	background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* MD3 Progress & Volume Sliders */
+[class*="progressBar"],
+[class*="scrubber"],
+[class*="slider"] {
+	height: 4px !important;
+	border-radius: var(--md-shape-corner-full) !important;
+	background-color: var(--md-sys-color-surface-container-highest) !important;
+	transition: height 0.15s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+[class*="progressBar"]:hover,
+[class*="scrubber"]:hover {
+	height: 6px !important;
+}
+
+[class*="progressBar"] [class*="fill"],
+[class*="scrubber"] [class*="progress"],
+[class*="slider"] [class*="fill"] {
+	border-radius: var(--md-shape-corner-full) !important;
+	background: var(--md-sys-color-primary) !important;
+	transition: background-color 0.4s ease !important;
+}
+
+/* ==========================================================================
+   MD3 Context Menus, Modals & Dialogs
+   ========================================================================== */
+
+[role="menu"],
+[class*="contextMenu"],
+[class*="dropdown"],
+[class*="dialogContainer"] {
+	border-radius: var(--md-shape-corner-large) !important;
+	background: rgba(33, 31, 38, 0.94) !important;
+	backdrop-filter: blur(24px) saturate(180%) !important;
+	-webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+	border: 1px solid var(--md-sys-color-outline-variant) !important;
+	box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6) !important;
+	padding: 6px !important;
+}
+
+[role="menuitem"],
+[class*="menuItem"],
+[class*="dropdownItem"] {
+	border-radius: var(--md-shape-corner-medium) !important;
+	margin: 2px 4px !important;
+	padding: 8px 14px !important;
+	font-size: 13px !important;
+	color: var(--md-sys-color-on-surface) !important;
+	transition: background-color 0.15s !important;
+}
+
+[role="menuitem"]:hover,
+[class*="menuItem"]:hover,
+[class*="dropdownItem"]:hover {
+	background-color: var(--md-sys-color-surface-container-high) !important;
+	color: var(--md-sys-color-primary) !important;
+}
