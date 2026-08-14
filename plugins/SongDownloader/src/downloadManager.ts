@@ -61,6 +61,7 @@ export interface QueueState {
 	overallPercent: number;
 	useRealMAX: boolean;
 	concurrentDownloads: number;
+	dynamicTheme: boolean;
 }
 
 class DownloadManager {
@@ -74,8 +75,9 @@ class DownloadManager {
 		errorCount: 0,
 		totalCount: 0,
 		overallPercent: 0,
-		useRealMAX: settings.useRealMAX,
+		useRealMAX: settings.useRealMAX ?? true,
 		concurrentDownloads: settings.concurrentDownloads ?? 2,
+		dynamicTheme: settings.dynamicTheme ?? true,
 	};
 
 	private listeners = new Set<(state: QueueState) => void>();
@@ -86,8 +88,9 @@ class DownloadManager {
 	public getState(): QueueState {
 		return {
 			...this.state,
-			useRealMAX: settings.useRealMAX,
+			useRealMAX: settings.useRealMAX ?? true,
 			concurrentDownloads: settings.concurrentDownloads ?? 2,
+			dynamicTheme: settings.dynamicTheme ?? true,
 		};
 	}
 
@@ -107,6 +110,19 @@ class DownloadManager {
 		}
 	}
 
+	public setDynamicTheme(enabled: boolean) {
+		settings.dynamicTheme = enabled;
+		this.state.dynamicTheme = enabled;
+		this.notify();
+	}
+
+	public notifySettingsChanged() {
+		this.state.useRealMAX = settings.useRealMAX ?? true;
+		this.state.concurrentDownloads = settings.concurrentDownloads ?? 2;
+		this.state.dynamicTheme = settings.dynamicTheme ?? true;
+		this.notify();
+	}
+
 	public subscribe(listener: (state: QueueState) => void): () => void {
 		this.listeners.add(listener);
 		listener(this.getState());
@@ -123,8 +139,9 @@ class DownloadManager {
 		this.state.completedCount = completed;
 		this.state.errorCount = error;
 		this.state.totalCount = total;
-		this.state.useRealMAX = settings.useRealMAX;
+		this.state.useRealMAX = settings.useRealMAX ?? true;
 		this.state.concurrentDownloads = settings.concurrentDownloads ?? 2;
+		this.state.dynamicTheme = settings.dynamicTheme ?? true;
 
 		if (total > 0) {
 			const sumPercent = this.state.tracks.reduce((acc, t) => {

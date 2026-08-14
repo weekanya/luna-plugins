@@ -29,24 +29,30 @@ export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDown
 	dynamicTheme: true,
 });
 
-// Sanitize download quality
+// Sanitize and ensure persistent defaults
 if (Quality.fromAudioQuality(settings.downloadQuality) === undefined) settings.downloadQuality = Quality.Max.audioQuality;
-if (!settings.concurrentDownloads || settings.concurrentDownloads < 1) settings.concurrentDownloads = 2;
+if (settings.concurrentDownloads === undefined || settings.concurrentDownloads < 1) settings.concurrentDownloads = 2;
+if (settings.skipExisting === undefined) settings.skipExisting = true;
+if (settings.saveLrcFile === undefined) settings.saveLrcFile = true;
+if (settings.dynamicTheme === undefined) settings.dynamicTheme = true;
+if (settings.useRealMAX === undefined) settings.useRealMAX = true;
 
 export const Settings = () => {
 	const [downloadQuality, setDownloadQuality] = React.useState(settings.downloadQuality);
 	const [defaultPath, setDefaultPath] = React.useState(settings.defaultPath);
 	const [pathFormat, setPathFormat] = React.useState(settings.pathFormat);
-	const [useRealMAX, setUseRealMAX] = React.useState(settings.useRealMAX);
+	const [useRealMAX, setUseRealMAX] = React.useState(settings.useRealMAX ?? true);
 	const [concurrentDownloads, setConcurrentDownloads] = React.useState(settings.concurrentDownloads ?? 2);
 	const [skipExisting, setSkipExisting] = React.useState(settings.skipExisting ?? true);
 	const [saveLrcFile, setSaveLrcFile] = React.useState(settings.saveLrcFile ?? true);
 	const [dynamicTheme, setDynamicTheme] = React.useState(settings.dynamicTheme ?? true);
 
-	// Sync RealMAX state bidirectionally with DownloadManager
+	// Sync state bidirectionally with DownloadManager
 	useEffect(() => {
 		return downloadManager.subscribe((state) => {
 			setUseRealMAX(state.useRealMAX);
+			setConcurrentDownloads(state.concurrentDownloads);
+			setDynamicTheme(state.dynamicTheme);
 		});
 	}, []);
 
@@ -74,7 +80,7 @@ export const Settings = () => {
 				value={String(concurrentDownloads)}
 				onChange={(e: any) => {
 					const val = Number(e.target.value) || 2;
-					settings.concurrentDownloads = val;
+					downloadManager.setConcurrentDownloads(val);
 					setConcurrentDownloads(val);
 				}}
 			>
@@ -85,36 +91,40 @@ export const Settings = () => {
 			</LunaSelectSetting>
 			<LunaSwitchSetting
 				title="Use RealMAX to find the highest quality"
-				value={useRealMAX}
+				checked={useRealMAX}
 				onChange={(_: any, checked: boolean) => {
 					downloadManager.setRealMAX(checked);
+					setUseRealMAX(checked);
 				}}
 			/>
 			<LunaSwitchSetting
 				title="Skip already downloaded tracks"
 				desc="Automatically checks if the file already exists on disk and skips re-downloading"
-				value={skipExisting}
+				checked={skipExisting}
 				onChange={(_: any, checked: boolean) => {
 					settings.skipExisting = checked;
 					setSkipExisting(checked);
+					downloadManager.notifySettingsChanged();
 				}}
 			/>
 			<LunaSwitchSetting
 				title="Save synchronized lyrics (.lrc)"
 				desc="Downloads timed .lrc lyrics file alongside the track for offline players"
-				value={saveLrcFile}
+				checked={saveLrcFile}
 				onChange={(_: any, checked: boolean) => {
 					settings.saveLrcFile = checked;
 					setSaveLrcFile(checked);
+					downloadManager.notifySettingsChanged();
 				}}
 			/>
 			<LunaSwitchSetting
 				title="Dynamic Material You Theme"
 				desc="Smoothly transitions Download Manager colors to match the currently downloading album art"
-				value={dynamicTheme}
+				checked={dynamicTheme}
 				onChange={(_: any, checked: boolean) => {
 					settings.dynamicTheme = checked;
 					setDynamicTheme(checked);
+					downloadManager.setDynamicTheme(checked);
 				}}
 			/>
 			<LunaButtonSetting

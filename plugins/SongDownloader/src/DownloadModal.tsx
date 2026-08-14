@@ -49,6 +49,7 @@ export const DownloadModal: React.FC = () => {
 		overallPercent,
 		useRealMAX,
 		concurrentDownloads = 2,
+		dynamicTheme = true,
 	} = state;
 
 	const activeTrack =
@@ -60,16 +61,16 @@ export const DownloadModal: React.FC = () => {
 
 	// Dynamic Material You Theme based on active track cover
 	useEffect(() => {
-		if (settings.dynamicTheme && activeTrack?.coverUrl) {
+		if (dynamicTheme && activeTrack?.coverUrl && (isOpen || isMinimized)) {
 			extractPaletteFromCover(activeTrack.coverUrl).then((palette) => {
-				if (palette) {
+				if (palette && downloadManager.getState().dynamicTheme) {
 					animateToPalette(palette, 600);
 				}
 			});
-		} else if (!isOpen && !isMinimized) {
+		} else {
 			resetDynamicTheme();
 		}
-	}, [activeTrack?.coverUrl, isOpen, isMinimized]);
+	}, [activeTrack?.coverUrl, dynamicTheme, isOpen, isMinimized]);
 
 	// Draggable Pointer Event Handlers for Mini Widget
 	const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
