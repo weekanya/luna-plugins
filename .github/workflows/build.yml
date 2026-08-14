@@ -2,6 +2,7 @@ name: "Validate & Build"
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   Sanity:
@@ -9,18 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
 
       - name: Install pnpm 📥
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@v4
         with:
           version: latest
 
       - name: Install Node.js 📥
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           cache: pnpm
-          node-version: latest
+          node-version: 20
 
       - name: Install dependencies 📥
         run: pnpm install
@@ -29,7 +30,7 @@ jobs:
         run: pnpm run build
 
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: luna-artifacts
           path: ./dist

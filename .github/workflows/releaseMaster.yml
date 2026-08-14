@@ -1,34 +1,48 @@
 name: "[master] Release"
 
 on:
- push:
-  branches:
-   - master
-  paths-ignore:
-   - "**/*.md"
-   - ".vscode/**"
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - "**/*.md"
+      - ".vscode/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
- Build:
-  uses: ./.github/workflows/build.yml
+  Build-and-Release:
+    name: Build and Release
+    runs-on: ubuntu-latest
 
- Release:
-  name: Release latest on GitHub
-  needs: Build
-  runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-  steps:
-   - name: Download All Artifacts
-     uses: actions/download-artifact@v4
-     with:
-      name: luna-artifacts
-      path: ./dist/
+      - name: Install pnpm 📥
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
 
-   - name: Publish latest release on GitHub
-     uses: marvinpinto/action-automatic-releases@latest
-     with:
-      repo_token: ${{ secrets.GITHUB_TOKEN }}
-      automatic_release_tag: latest
-      prerelease: false
-      title: Latest Release
-      files: ./dist/**
+      - name: Install Node.js 📥
+        uses: actions/setup-node@v4
+        with:
+          cache: pnpm
+          node-version: 20
+
+      - name: Install dependencies 📥
+        run: pnpm install
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Publish latest release on GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "Latest Release"
+          prerelease: false
+          files: ./dist/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
