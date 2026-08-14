@@ -2,7 +2,8 @@
    Material Design 3 (MD3) Expressive - SongDownloader Theme Tokens & Components
    ========================================================================== */
 
-:root {
+:root,
+#songdownloader-modal-root {
 	/* --- MD3 Dark Theme Color Palette (HCT Semantic Roles) --- */
 	--md-sys-color-primary: #d0bcff;
 	--md-sys-color-on-primary: #381e72;
@@ -37,7 +38,7 @@
 	--md-sys-color-on-surface-variant: #cac4d0;
 	--md-sys-color-outline: #938f99;
 	--md-sys-color-outline-variant: #49454f;
-	--md-sys-color-scrim: rgba(0, 0, 0, 0.6);
+	--md-sys-color-scrim: rgba(0, 0, 0, 0.65);
 
 	/* --- MD3 Shape Tokens --- */
 	--md-sys-shape-corner-none: 0px;
@@ -48,48 +49,47 @@
 	--md-sys-shape-corner-extra-large: 28px;
 	--md-sys-shape-corner-full: 9999px;
 
-	/* --- MD3 Motion Tokens --- */
-	--md-sys-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
-	--md-sys-motion-easing-standard-decelerate: cubic-bezier(0, 0, 0, 1);
-	--md-sys-motion-easing-standard-accelerate: cubic-bezier(0.3, 0, 1, 1);
+	/* --- MD3 Motion / Animation Tokens --- */
+	--md-sys-motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
 	--md-sys-motion-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
-
+	--md-sys-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
 	--md-sys-motion-duration-short2: 100ms;
-	--md-sys-motion-duration-short3: 150ms;
 	--md-sys-motion-duration-short4: 200ms;
-	--md-sys-motion-duration-medium2: 250ms;
-	--md-sys-motion-duration-long2: 400ms;
+	--md-sys-motion-duration-medium2: 300ms;
+	--md-sys-motion-duration-medium4: 400ms;
+	--md-sys-motion-duration-long2: 500ms;
 
 	/* --- MD3 Elevation Shadows --- */
-	--md-sys-elevation-level1: 0 1px 3px 1px rgba(0, 0, 0, 0.15), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-	--md-sys-elevation-level2: 0 2px 6px 2px rgba(0, 0, 0, 0.15), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-	--md-sys-elevation-level3: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px 0 rgba(0, 0, 0, 0.3);
-	--md-sys-elevation-level5: 0 8px 16px 6px rgba(0, 0, 0, 0.25), 0 4px 6px 0 rgba(0, 0, 0, 0.35);
+	--md-sys-elevation-level1: 0px 1px 3px 1px rgba(0, 0, 0, 0.25), 0px 1px 2px 0px rgba(0, 0, 0, 0.35);
+	--md-sys-elevation-level2: 0px 2px 6px 2px rgba(0, 0, 0, 0.25), 0px 1px 2px 0px rgba(0, 0, 0, 0.35);
+	--md-sys-elevation-level3: 0px 4px 8px 3px rgba(0, 0, 0, 0.25), 0px 1px 3px 0px rgba(0, 0, 0, 0.35);
+	--md-sys-elevation-level4: 0px 6px 10px 4px rgba(0, 0, 0, 0.25), 0px 2px 3px 0px rgba(0, 0, 0, 0.35);
+	--md-sys-elevation-level5: 0px 8px 12px 6px rgba(0, 0, 0, 0.25), 0px 4px 4px 0px rgba(0, 0, 0, 0.35);
 
-	/* --- MD3 State Layer Opacities --- */
-	--md-sys-state-hover: rgba(230, 224, 233, 0.08);
-	--md-sys-state-focus: rgba(230, 224, 233, 0.12);
-	--md-sys-state-pressed: rgba(230, 224, 233, 0.12);
+	/* --- MD3 State Layers (Opacities) --- */
+	--md-sys-state-hover: rgba(255, 255, 255, 0.08);
+	--md-sys-state-focus: rgba(255, 255, 255, 0.12);
+	--md-sys-state-pressed: rgba(255, 255, 255, 0.15);
+	--md-sys-state-dragged: rgba(255, 255, 255, 0.16);
 }
 
 /* ==========================================================================
-   MD3 Modal Dialog (Section 4.6)
+   MD3 Dialog Scrim & Container (Section 4.6)
    ========================================================================== */
 
 .sd-overlay {
 	position: fixed;
 	inset: 0;
+	z-index: 99999;
 	background: var(--md-sys-color-scrim);
-	backdrop-filter: blur(6px);
-	-webkit-backdrop-filter: blur(6px);
-	z-index: 999990;
+	backdrop-filter: blur(8px);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	animation: md3FadeIn var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard-decelerate);
+	animation: md3ScrimFadeIn var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized-decelerate);
 }
 
-@keyframes md3FadeIn {
+@keyframes md3ScrimFadeIn {
 	from {
 		opacity: 0;
 	}
@@ -99,25 +99,27 @@
 }
 
 .sd-modal {
-	width: 92vw;
-	max-width: 600px;
-	max-height: 86vh;
+	width: 580px;
+	max-width: 92vw;
+	max-height: 84vh;
 	background: var(--md-sys-color-surface-container-high);
-	color: var(--md-sys-color-on-surface);
+	border: 1px solid var(--md-sys-color-outline-variant);
 	border-radius: var(--md-sys-shape-corner-extra-large);
 	box-shadow: var(--md-sys-elevation-level5);
-	border: 1px solid var(--md-sys-color-outline-variant);
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
-	font-family: -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", sans-serif;
-	animation: md3DialogGrow var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized-decelerate);
+	color: var(--md-sys-color-on-surface);
+	font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+	animation: md3DialogPop var(--md-sys-motion-duration-long2) var(--md-sys-motion-easing-emphasized-decelerate);
+	transition: background-color var(--md-sys-motion-duration-long2) var(--md-sys-motion-easing-standard),
+		border-color var(--md-sys-motion-duration-long2) var(--md-sys-motion-easing-standard);
 }
 
-@keyframes md3DialogGrow {
+@keyframes md3DialogPop {
 	from {
 		opacity: 0;
-		transform: scale(0.95) translateY(10px);
+		transform: scale(0.92) translateY(16px);
 	}
 	to {
 		opacity: 1;
@@ -125,20 +127,23 @@
 	}
 }
 
-/* Dialog Header */
+/* ==========================================================================
+   MD3 Dialog Header (Section 4.6)
+   ========================================================================== */
+
 .sd-header {
 	padding: 20px 24px 16px 24px;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	border-bottom: 1px solid var(--md-sys-color-outline-variant);
 	background: var(--md-sys-color-surface-container-high);
+	border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .sd-header-left {
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: 14px;
 	min-width: 0;
 }
 
@@ -153,51 +158,52 @@
 	justify-content: center;
 	font-size: 20px;
 	flex-shrink: 0;
+	transition: background-color var(--md-sys-motion-duration-long2) var(--md-sys-motion-easing-standard),
+		color var(--md-sys-motion-duration-long2) var(--md-sys-motion-easing-standard);
 }
 
 .sd-header-title-wrap {
-	display: flex;
-	flex-direction: column;
 	min-width: 0;
 }
 
 .sd-header-title {
 	font-size: 18px;
 	font-weight: 600;
+	line-height: 24px;
 	color: var(--md-sys-color-on-surface);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	letter-spacing: 0.15px;
 }
 
 .sd-header-subtitle {
 	font-size: 12px;
 	color: var(--md-sys-color-on-surface-variant);
+	line-height: 16px;
 	margin-top: 2px;
 }
 
 .sd-header-actions {
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: 6px;
+	flex-shrink: 0;
 }
 
-/* MD3 Standard Icon Button */
+/* MD3 Standard Icon Buttons (40dp × 40dp) */
 .sd-icon-btn {
-	width: 40px;
-	height: 40px;
+	width: 36px;
+	height: 36px;
 	border-radius: var(--md-sys-shape-corner-full);
-	border: none;
 	background: transparent;
+	border: none;
 	color: var(--md-sys-color-on-surface-variant);
-	cursor: pointer;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 16px;
-	transition: background-color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard),
-		color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
+	cursor: pointer;
+	transition: background-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
+		color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
 }
 
 .sd-icon-btn:hover {
@@ -207,7 +213,6 @@
 
 .sd-icon-btn:active {
 	background: var(--md-sys-state-pressed);
-	transform: scale(0.96);
 }
 
 .sd-icon-btn.close:hover {
@@ -216,7 +221,7 @@
 }
 
 /* ==========================================================================
-   MD3 RealMAX Bar & Switch (Section 4.11)
+   MD3 RealMAX Bar & Switch (Section 4.11 Selection Controls)
    ========================================================================== */
 
 .sd-realmax-bar {
@@ -226,21 +231,26 @@
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	gap: 16px;
 }
 
 .sd-realmax-info {
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: 12px;
+	min-width: 0;
 }
 
 .sd-realmax-badge {
+	display: inline-flex;
+	align-items: center;
 	font-size: 11px;
 	font-weight: 700;
-	padding: 4px 8px;
+	padding: 4px 10px;
 	border-radius: var(--md-sys-shape-corner-small);
-	letter-spacing: 0.5px;
+	letter-spacing: 0.3px;
 	text-transform: uppercase;
+	flex-shrink: 0;
 }
 
 .sd-realmax-badge.on {
@@ -257,13 +267,14 @@
 
 .sd-realmax-label {
 	font-size: 13px;
-	font-weight: 500;
+	font-weight: 600;
 	color: var(--md-sys-color-on-surface);
 }
 
 .sd-realmax-desc {
 	font-size: 11px;
 	color: var(--md-sys-color-on-surface-variant);
+	margin-top: 1px;
 }
 
 /* MD3 Switch Component: 52dp × 32dp, 16dp radius */
@@ -303,78 +314,72 @@
 }
 
 .md3-switch.checked .md3-switch-thumb {
+	transform: translateX(20px);
 	width: 24px;
 	height: 24px;
 	left: 4px;
-	transform: translateX(20px);
 	background: var(--md-sys-color-on-primary);
 }
 
-.md3-switch:hover .md3-switch-thumb {
-	filter: brightness(1.1);
-}
-
-.md3-switch:active .md3-switch-thumb {
-	width: 28px;
-}
-
 /* ==========================================================================
-   MD3 Overall Progress Section (Section 4.13)
+   MD3 Overall Progress Section (Section 4.13 Linear Progress & Chips 4.2)
    ========================================================================== */
 
 .sd-overall-section {
-	padding: 16px 24px;
+	padding: 14px 24px 10px 24px;
 	background: var(--md-sys-color-surface-container-high);
-	border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .sd-overall-meta {
 	display: flex;
-	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 10px;
+	justify-content: space-between;
+	margin-bottom: 8px;
 }
 
 .sd-overall-chips {
 	display: flex;
+	align-items: center;
 	gap: 8px;
 	flex-wrap: wrap;
 }
 
-/* MD3 Assist & Filter Chips (Section 4.2: 32dp height, 8dp radius) */
+/* MD3 Chips: 32dp height, 8dp radius */
 .md3-chip {
-	height: 32px;
-	padding: 0 12px;
+	height: 28px;
+	padding: 0 10px;
 	border-radius: var(--md-sys-shape-corner-small);
 	font-size: 12px;
 	font-weight: 500;
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	letter-spacing: 0.1px;
+	border: 1px solid var(--md-sys-color-outline-variant);
+	background: var(--md-sys-color-surface-container);
+	color: var(--md-sys-color-on-surface-variant);
 }
 
 .md3-chip.neutral {
 	background: var(--md-sys-color-surface-container-highest);
-	color: var(--md-sys-color-on-surface-variant);
-	border: 1px solid var(--md-sys-color-outline-variant);
+	color: var(--md-sys-color-on-surface);
 }
 
 .md3-chip.success {
-	background: var(--md-sys-color-secondary-container);
-	color: var(--md-sys-color-on-secondary-container);
+	background: var(--md-sys-color-primary-container);
+	color: var(--md-sys-color-on-primary-container);
+	border-color: var(--md-sys-color-primary);
 }
 
 .md3-chip.error {
 	background: var(--md-sys-color-error-container);
 	color: var(--md-sys-color-on-error-container);
+	border-color: var(--md-sys-color-error);
 }
 
 .sd-overall-percent {
-	font-size: 15px;
+	font-size: 14px;
 	font-weight: 700;
 	color: var(--md-sys-color-primary);
-	letter-spacing: 0.1px;
 }
 
 /* MD3 Linear Progress Indicator: 4dp track height, 2dp radius */
@@ -390,7 +395,8 @@
 	height: 100%;
 	border-radius: var(--md-sys-shape-corner-extra-small);
 	background: var(--md-sys-color-primary);
-	transition: width var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+	transition: width var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
+		background-color var(--md-sys-motion-duration-long2) var(--md-sys-motion-easing-standard);
 }
 
 /* ==========================================================================
@@ -398,7 +404,7 @@
    ========================================================================== */
 
 .sd-active-card {
-	margin: 16px 24px 8px 24px;
+	margin: 12px 24px 8px 24px;
 	padding: 16px;
 	background: var(--md-sys-color-surface-container);
 	border: 1px solid var(--md-sys-color-outline-variant);
@@ -406,6 +412,8 @@
 	box-shadow: var(--md-sys-elevation-level1);
 	display: flex;
 	gap: 16px;
+	overflow: hidden;
+	box-sizing: border-box;
 }
 
 .sd-active-cover {
@@ -437,13 +445,7 @@
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
-}
-
-.sd-active-title-row {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
+	overflow: hidden;
 }
 
 .sd-active-title {
@@ -453,6 +455,24 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	line-height: 1.3;
+}
+
+.sd-active-artist {
+	font-size: 12.5px;
+	color: var(--md-sys-color-on-surface-variant);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	margin-top: 2px;
+}
+
+.sd-active-badges {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 6px;
+	flex-wrap: wrap;
 }
 
 .sd-quality-badge {
@@ -462,7 +482,7 @@
 	border-radius: var(--md-sys-shape-corner-small);
 	background: var(--md-sys-color-tertiary-container);
 	color: var(--md-sys-color-on-tertiary-container);
-	letter-spacing: 0.5px;
+	letter-spacing: 0.3px;
 	flex-shrink: 0;
 }
 
@@ -479,6 +499,10 @@
 	align-items: center;
 	gap: 4px;
 	flex-shrink: 0;
+	max-width: 100%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .sd-track-badges {
@@ -487,15 +511,6 @@
 	gap: 6px;
 	margin-top: 3px;
 	flex-wrap: wrap;
-}
-
-.sd-active-artist {
-	font-size: 13px;
-	color: var(--md-sys-color-on-surface-variant);
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	margin-top: 2px;
 }
 
 .sd-active-progress-wrap {
@@ -513,6 +528,10 @@
 .sd-active-progress-status {
 	color: var(--md-sys-color-primary);
 	font-weight: 500;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	margin-right: 8px;
 }
 
 /* ==========================================================================
@@ -526,8 +545,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
-	min-height: 140px;
-	max-height: 260px;
+	min-height: 180px;
 }
 
 .sd-track-list::-webkit-scrollbar {
@@ -536,55 +554,44 @@
 
 .sd-track-list::-webkit-scrollbar-thumb {
 	background: var(--md-sys-color-outline-variant);
-	border-radius: var(--md-sys-shape-corner-full);
+	border-radius: 3px;
 }
 
 .sd-track-row {
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	padding: 10px 14px;
+	padding: 8px 12px;
 	border-radius: var(--md-sys-shape-corner-medium);
 	background: var(--md-sys-color-surface-container-low);
 	border: 1px solid transparent;
-	transition: background-color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard),
-		border-color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
+	transition: background-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
+		border-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
 }
 
 .sd-track-row:hover {
 	background: var(--md-sys-color-surface-container);
-	border-color: var(--md-sys-color-outline-variant);
 }
 
 .sd-track-row.active {
-	background: var(--md-sys-color-primary-container);
 	border-color: var(--md-sys-color-primary);
-}
-
-.sd-track-row.active .sd-track-row-title {
-	color: var(--md-sys-color-on-primary-container);
-}
-
-.sd-track-row.active .sd-track-row-artist {
-	color: var(--md-sys-color-on-primary-container);
-	opacity: 0.8;
+	background: var(--md-sys-color-surface-container);
 }
 
 .sd-track-row.error {
-	background: var(--md-sys-color-error-container);
 	border-color: var(--md-sys-color-error);
+	background: rgba(140, 29, 24, 0.15);
 }
 
 .sd-track-row.completed {
-	opacity: 0.9;
+	opacity: 0.85;
 }
 
 .sd-track-num {
-	font-size: 13px;
+	font-size: 12px;
 	font-weight: 600;
 	color: var(--md-sys-color-on-surface-variant);
-	width: 24px;
-	text-align: center;
+	width: 30px;
 	flex-shrink: 0;
 }
 
@@ -603,7 +610,7 @@
 }
 
 .sd-track-row-title {
-	font-size: 13.5px;
+	font-size: 13px;
 	font-weight: 500;
 	color: var(--md-sys-color-on-surface);
 	white-space: nowrap;
@@ -612,7 +619,7 @@
 }
 
 .sd-track-row-artist {
-	font-size: 12px;
+	font-size: 11.5px;
 	color: var(--md-sys-color-on-surface-variant);
 	white-space: nowrap;
 	overflow: hidden;
@@ -623,20 +630,21 @@
 .sd-track-error-msg {
 	font-size: 11px;
 	color: var(--md-sys-color-error);
-	margin-top: 3px;
+	margin-top: 2px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
+/* Status Badges */
 .sd-status-badge {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	font-size: 11.5px;
-	font-weight: 500;
-	padding: 4px 10px;
+	font-size: 11px;
+	font-weight: 600;
+	padding: 3px 8px;
 	border-radius: var(--md-sys-shape-corner-small);
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
 	flex-shrink: 0;
 }
 
@@ -656,61 +664,49 @@
 }
 
 .sd-status-badge.completed {
-	background: var(--md-sys-color-secondary-container);
-	color: var(--md-sys-color-on-secondary-container);
-}
-
-.sd-status-badge.error {
-	background: var(--md-sys-color-error-container);
-	color: var(--md-sys-color-on-error-container);
-}
-
-.sd-status-badge.cancelled {
-	background: var(--md-sys-color-surface-container-highest);
-	color: var(--md-sys-color-on-surface-variant);
+	background: rgba(79, 55, 139, 0.25);
+	color: var(--md-sys-color-primary);
+	border: 1px solid var(--md-sys-color-primary);
 }
 
 /* ==========================================================================
-   MD3 Buttons (Section 4.1: Filled, Filled Tonal, Text - 40dp height, 20dp radius)
+   MD3 Dialog Actions & Buttons (Section 4.1 Buttons: 40dp height, 20dp radius)
    ========================================================================== */
 
 .sd-footer {
-	padding: 16px 24px 20px 24px;
-	background: var(--md-sys-color-surface-container-high);
-	border-top: 1px solid var(--md-sys-color-outline-variant);
+	padding: 16px 24px;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	background: var(--md-sys-color-surface-container-high);
+	border-top: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .sd-footer-left {
 	display: flex;
+	align-items: center;
 	gap: 8px;
+	flex-wrap: wrap;
 }
 
+/* MD3 Button System */
 .md3-btn {
-	height: 40px;
-	padding: 0 20px;
-	border-radius: 20px;
-	font-size: 14px;
+	height: 38px;
+	padding: 0 18px;
+	border-radius: 19px;
+	font-size: 13px;
 	font-weight: 500;
-	letter-spacing: 0.1px;
-	cursor: pointer;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	gap: 8px;
+	cursor: pointer;
 	border: none;
 	transition: background-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
 		box-shadow var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
-		transform var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+		transform var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
 }
 
-.md3-btn:active {
-	transform: scale(0.98);
-}
-
-/* Filled Button (High Emphasis) */
 .md3-btn.filled {
 	background: var(--md-sys-color-primary);
 	color: var(--md-sys-color-on-primary);
@@ -719,42 +715,41 @@
 
 .md3-btn.filled:hover {
 	box-shadow: var(--md-sys-elevation-level2);
-	filter: brightness(1.06);
+	background: var(--md-sys-color-primary);
+	filter: brightness(1.08);
 }
 
-/* Filled Tonal Button (Mid Emphasis) */
 .md3-btn.tonal {
 	background: var(--md-sys-color-secondary-container);
 	color: var(--md-sys-color-on-secondary-container);
 }
 
 .md3-btn.tonal:hover {
-	filter: brightness(1.08);
+	background: var(--md-sys-color-secondary-container);
+	filter: brightness(1.12);
 }
 
-/* Error Tonal Button */
 .md3-btn.tonal-error {
 	background: var(--md-sys-color-error-container);
 	color: var(--md-sys-color-on-error-container);
 }
 
 .md3-btn.tonal-error:hover {
-	filter: brightness(1.1);
+	filter: brightness(1.12);
 }
 
-/* Text Button (Lowest Emphasis) */
 .md3-btn.text {
 	background: transparent;
-	color: var(--md-sys-color-primary);
-	padding: 0 12px;
+	color: var(--md-sys-color-on-surface-variant);
 }
 
 .md3-btn.text:hover {
 	background: var(--md-sys-state-hover);
+	color: var(--md-sys-color-on-surface);
 }
 
 /* ==========================================================================
-   MD3 Floating Mini Widget (Extended FAB Style)
+   MD3 Floating Mini Widget (Draggable Extended FAB Style)
    ========================================================================== */
 
 .sd-mini-widget {
@@ -770,12 +765,21 @@
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	cursor: pointer;
+	cursor: grab;
+	user-select: none;
+	touch-action: none;
 	color: var(--md-sys-color-on-surface);
-	transition: transform var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
-		box-shadow var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
-	max-width: 320px;
+	max-width: 340px;
 	animation: md3FabPop var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized-decelerate);
+	transition: background-color var(--md-sys-motion-duration-long2) var(--md-sys-motion-easing-standard),
+		border-color var(--md-sys-motion-duration-long2) var(--md-sys-motion-easing-standard),
+		box-shadow var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+
+.sd-mini-widget.dragging {
+	cursor: grabbing !important;
+	box-shadow: var(--md-sys-elevation-level5) !important;
+	transform: scale(1.03);
 }
 
 @keyframes md3FabPop {
@@ -789,16 +793,15 @@
 	}
 }
 
-.sd-mini-widget:hover {
-	transform: translateY(-2px);
-	box-shadow: var(--md-sys-elevation-level5);
+.sd-mini-widget:hover:not(.dragging) {
+	box-shadow: var(--md-sys-elevation-level4);
 	background: var(--md-sys-color-surface-container-highest);
 }
 
 .sd-mini-ring {
 	position: relative;
-	width: 36px;
-	height: 36px;
+	width: 38px;
+	height: 38px;
 	flex-shrink: 0;
 }
 
@@ -818,7 +821,8 @@
 .sd-mini-ring .progress {
 	stroke: var(--md-sys-color-primary);
 	stroke-linecap: round;
-	transition: stroke-dashoffset var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+	transition: stroke-dashoffset var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
+		stroke var(--md-sys-motion-duration-long2) var(--md-sys-motion-easing-standard);
 }
 
 .sd-mini-ring-text {
@@ -830,6 +834,7 @@
 	font-size: 10px;
 	font-weight: 700;
 	color: var(--md-sys-color-primary);
+	transition: color var(--md-sys-motion-duration-long2) var(--md-sys-motion-easing-standard);
 }
 
 .sd-mini-info {

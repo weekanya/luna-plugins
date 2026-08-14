@@ -8,26 +8,40 @@ import { getDownloadFolder } from "./helpers";
 
 const defaultFilenameFormat = "{artist} - {album} - {title}";
 
-type Settings = {
+export type Settings = {
 	downloadQuality: redux.AudioQuality;
 	defaultPath?: string;
 	pathFormat: string;
 	useRealMAX: boolean;
+	concurrentDownloads: number;
+	skipExisting: boolean;
+	saveLrcFile: boolean;
+	dynamicTheme: boolean;
 };
+
 export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDownloader", {
 	downloadQuality: Quality.Max.audioQuality,
 	pathFormat: defaultFilenameFormat,
 	useRealMAX: true,
+	concurrentDownloads: 2,
+	skipExisting: true,
+	saveLrcFile: true,
+	dynamicTheme: true,
 });
 
 // Sanitize download quality
 if (Quality.fromAudioQuality(settings.downloadQuality) === undefined) settings.downloadQuality = Quality.Max.audioQuality;
+if (!settings.concurrentDownloads || settings.concurrentDownloads < 1) settings.concurrentDownloads = 2;
 
 export const Settings = () => {
 	const [downloadQuality, setDownloadQuality] = React.useState(settings.downloadQuality);
 	const [defaultPath, setDefaultPath] = React.useState(settings.defaultPath);
 	const [pathFormat, setPathFormat] = React.useState(settings.pathFormat);
 	const [useRealMAX, setUseRealMAX] = React.useState(settings.useRealMAX);
+	const [concurrentDownloads, setConcurrentDownloads] = React.useState(settings.concurrentDownloads ?? 2);
+	const [skipExisting, setSkipExisting] = React.useState(settings.skipExisting ?? true);
+	const [saveLrcFile, setSaveLrcFile] = React.useState(settings.saveLrcFile ?? true);
+	const [dynamicTheme, setDynamicTheme] = React.useState(settings.dynamicTheme ?? true);
 
 	// Sync RealMAX state bidirectionally with DownloadManager
 	useEffect(() => {
@@ -47,18 +61,60 @@ export const Settings = () => {
 			<LunaSelectSetting
 				title="Download quality"
 				value={downloadQuality}
-				onChange={(e) => setDownloadQuality((settings.downloadQuality = e.target.value))}
+				onChange={(e: any) => setDownloadQuality((settings.downloadQuality = e.target.value))}
 			>
 				{Object.values(Quality.lookups.audioQuality).map((quality) => {
 					if (typeof quality !== "string" && quality.audioQuality !== Quality.MQA.audioQuality)
 						return <LunaSelectItem key={quality.name} value={quality.audioQuality} children={quality.name} />;
 				})}
 			</LunaSelectSetting>
+			<LunaSelectSetting
+				title="Concurrent downloads"
+				desc="Number of tracks to download simultaneously in parallel"
+				value={String(concurrentDownloads)}
+				onChange={(e: any) => {
+					const val = Number(e.target.value) || 2;
+					settings.concurrentDownloads = val;
+					setConcurrentDownloads(val);
+				}}
+			>
+				<LunaSelectItem value="1" children="1 track (Sequential)" />
+				<LunaSelectItem value="2" children="2 tracks (Recommended)" />
+				<LunaSelectItem value="3" children="3 tracks (Fast)" />
+				<LunaSelectItem value="4" children="4 tracks (Maximum)" />
+			</LunaSelectSetting>
 			<LunaSwitchSetting
 				title="Use RealMAX to find the highest quality"
 				value={useRealMAX}
-				onChange={(_, checked) => {
+				onChange={(_: any, checked: boolean) => {
 					downloadManager.setRealMAX(checked);
+				}}
+			/>
+			<LunaSwitchSetting
+				title="Skip already downloaded tracks"
+				desc="Automatically checks if the file already exists on disk and skips re-downloading"
+				value={skipExisting}
+				onChange={(_: any, checked: boolean) => {
+					settings.skipExisting = checked;
+					setSkipExisting(checked);
+				}}
+			/>
+			<LunaSwitchSetting
+				title="Save synchronized lyrics (.lrc)"
+				desc="Downloads timed .lrc lyrics file alongside the track for offline players"
+				value={saveLrcFile}
+				onChange={(_: any, checked: boolean) => {
+					settings.saveLrcFile = checked;
+					setSaveLrcFile(checked);
+				}}
+			/>
+			<LunaSwitchSetting
+				title="Dynamic Material You Theme"
+				desc="Smoothly transitions Download Manager colors to match the currently downloading album art"
+				value={dynamicTheme}
+				onChange={(_: any, checked: boolean) => {
+					settings.dynamicTheme = checked;
+					setDynamicTheme(checked);
 				}}
 			/>
 			<LunaButtonSetting
@@ -99,7 +155,7 @@ export const Settings = () => {
 					</>
 				}
 				value={pathFormat}
-				onChange={(e) => setPathFormat((settings.pathFormat = e.target.value))}
+				onChange={(e: any) => setPathFormat((settings.pathFormat = e.target.value))}
 			/>
 		</LunaSettings>
 	);

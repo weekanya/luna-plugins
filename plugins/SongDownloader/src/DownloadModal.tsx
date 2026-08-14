@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { animateToPalette, extractPaletteFromCover, resetDynamicTheme } from "./colorTheme";
 import { downloadManager, type QueueState, type QueueTrack } from "./downloadManager";
 import {
 	BoltIcon,
@@ -15,9 +16,21 @@ import {
 	StopIcon,
 	SyncIcon,
 } from "./icons";
+import { settings } from "./Settings";
 
 export const DownloadModal: React.FC = () => {
 	const [state, setState] = useState<QueueState>(downloadManager.getState());
+
+	// Draggable widget state
+	const [widgetPos, setWidgetPos] = useState<{ x: number; y: number } | null>(null);
+	const [isDragging, setIsDragging] = useState(false);
+	const dragStartRef = useRef<{ startX: number; startY: number; posX: number; posY: number; hasMoved: boolean }>({
+		startX: 0,
+		startY: 0,
+		posX: 0,
+		posY: 0,
+		hasMoved: false,
+	});
 
 	useEffect(() => {
 		return downloadManager.subscribe(setState);
@@ -42,36 +55,112 @@ export const DownloadModal: React.FC = () => {
 		tracks.find((t) => t.status === "downloading" || t.status === "checking");
 	const pendingCount = Math.max(0, totalCount - completedCount - errorCount);
 
+	// Dynamic Material You Theme based on active track cover
+	useEffect(() => {
+		if (settings.dynamicTheme && activeTrack?.coverUrl) {
+			extractPaletteFromCover(activeTrack.coverUrl).then((palette) => {
+				if (palette) {
+					animateToPalette(palette, 600);
+				}
+			});
+		} else if (!isOpen && !isMinimized) {
+			resetDynamicTheme();
+		}
+	}, [activeTrack?.coverUrl, isOpen, isMinimized]);
+
+	// Draggable Pointer Event Handlers for Mini Widget
+	const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+		const target = e.currentTarget;
+		const rect = target.getBoundingClientRect();
+		const currentX = widgetPos ? widgetPos.x : rect.left;
+		const currentY = widgetPos ? widgetPos.y : rect.top;
+
+		dragStartRef.current = {
+			startX: e.clientX,
+			startY: e.clientY,
+			posX: currentX,
+			posY: currentY,
+			hasMoved: false,
+		};
+
+		setIsDragging(true);
+
+		const handlePointerMove = (moveEv: PointerEvent) => {
+			const dx = moveEv.clientX - dragStartRef.current.startX;
+			const dy = moveEv.clientY - dragStartRef.current.startY;
+
+			if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+				dragStartRef.current.hasMoved = true;
+			}
+
+			const newX = Math.max(10, Math.min(window.innerWidth - 320, dragStartRef.current.posX + dx));
+			const newY = Math.max(10, Math.min(window.innerHeight - 70, dragStartRef.current.posY + dy));
+
+			setWidgetPos({ x: newX, y: newY });
+		};
+
+		const handlePointerUp = () => {
+			setIsDragging(false);
+			window.removeEventListener("pointermove", handlePointerMove);
+			window.removeEventListener("pointerup", handlePointerUp);
+		};
+
+		window.addEventListener("pointermove", handlePointerMove);
+		window.addEventListener("pointerup", handlePointerUp);
+	};
+
 	// Floating Mini Widget (MD3 Extended FAB Style)
 	if (isMinimized && tracks.length > 0) {
 		const radius = 14;
 		const circumference = 2 * Math.PI * radius;
-		const strokeDashoffset = circumference - (overallPercent / 100) * circumference;
+		// Use active track's current download percent as requested
+		const currentTrackPercent = activeTrack ? activeTrack.progressPercent : overallPercent || 0;
+		const strokeDashoffset = circumference - (currentTrackPercent / 100) * circumference;
+
+		const widgetStyle: React.CSSProperties = widgetPos
+			? {
+					left: `${widgetPos.x}px`,
+					top: `${widgetPos.y}px`,
+					right: "auto",
+					bottom: "auto",
+				}
+			: {};
 
 		return (
-			<div className="sd-mini-widget" onClick={() => downloadManager.openModal()}>
+			<div
+				className={`sd-mini-widget ${isDragging ? "dragging" : ""}`}
+				style={widgetStyle}
+				onPointerDown={handlePointerDown}
+				onClick={() => {
+					if (!dragStartRef.current.hasMoved) {
+						downloadManager.openModal();
+					}
+				}}
+			>
 				<div className="sd-mini-ring">
-					<svg width="36" height="36">
-						<circle className="bg" cx="18" cy="18" r={radius} />
+					<svg width="38" height="38">
+						<circle className="bg" cx="19" cy="19" r={radius} />
 						<circle
 							className="progress"
-							cx="18"
-							cy="18"
+							cx="19"
+							cy="19"
 							r={radius}
 							strokeDasharray={circumference}
 							strokeDashoffset={strokeDashoffset}
 						/>
 					</svg>
-					<div className="sd-mini-ring-text">{overallPercent}%</div>
+					<div className="sd-mini-ring-text">{currentTrackPercent}%</div>
 				</div>
 				<div className="sd-mini-info">
 					<div className="sd-mini-title">{activeTrack ? activeTrack.title : batchTitle}</div>
 					<div className="sd-mini-status">
-						{status === "running"
-							? `Downloading (${completedCount}/${totalCount})`
-							: status === "completed"
-								? `All ${completedCount} downloaded`
-								: `${completedCount} done, ${errorCount} errors`}
+						{activeTrack
+							? `${activeTrack.downloadedMB || "0"} / ${activeTrack.totalMB || "0"} MB (${activeTrack.progressPercent}%)`
+							: status === "running"
+								? `Downloading (${completedCount}/${totalCount})`
+								: status === "completed"
+									? `All ${completedCount} downloaded`
+									: `${completedCount} done, ${errorCount} errors`}
 					</div>
 				</div>
 			</div>
@@ -180,7 +269,7 @@ export const DownloadModal: React.FC = () => {
 					</div>
 				</div>
 
-				{/* Active Track Highlight Card (MD3 Outlined Card 4.3) */}
+				{/* Active Track Highlight Card (MD3 Outlined Card 4.3 - Fixed Layout) */}
 				{activeTrack && (
 					<div className="sd-active-card">
 						{activeTrack.coverUrl ? (
@@ -192,21 +281,19 @@ export const DownloadModal: React.FC = () => {
 						)}
 						<div className="sd-active-info">
 							<div>
-								<div className="sd-active-title-row">
-									<div className="sd-active-title" title={activeTrack.title}>
-										{activeTrack.title}
-									</div>
-									<div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-										{activeTrack.qualityName && (
-											<span className="sd-quality-badge">{activeTrack.qualityName}</span>
-										)}
-										{activeTrack.formatInfo && (
-											<span className="sd-format-badge">{activeTrack.formatInfo}</span>
-										)}
-									</div>
+								<div className="sd-active-title" title={activeTrack.title}>
+									{activeTrack.title}
 								</div>
 								<div className="sd-active-artist" title={activeTrack.artist}>
 									{activeTrack.artist} {activeTrack.album ? `• ${activeTrack.album}` : ""}
+								</div>
+								<div className="sd-active-badges">
+									{activeTrack.qualityName && (
+										<span className="sd-quality-badge">{activeTrack.qualityName}</span>
+									)}
+									{activeTrack.formatInfo && (
+										<span className="sd-format-badge">{activeTrack.formatInfo}</span>
+									)}
 								</div>
 							</div>
 
@@ -268,7 +355,11 @@ export const DownloadModal: React.FC = () => {
 							</button>
 						)}
 						{tracks.length > 0 && status !== "running" && (
-							<button className="md3-btn text" onClick={() => downloadManager.clearAll()} title="Clear all download history">
+							<button
+								className="md3-btn text"
+								onClick={() => downloadManager.clearAll()}
+								title="Clear all download history"
+							>
 								<ClearAllIcon size={16} />
 								Clear All
 							</button>

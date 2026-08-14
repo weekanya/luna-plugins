@@ -1,5 +1,6 @@
 import { Tracer, type LunaUnload } from "@luna/core";
 import { MediaItem, safeInterval, type MediaCollection, type MediaFormat } from "@luna/lib";
+import { fileExists, saveLyricsFile } from "./fileUtils.native";
 import { getDownloadFolder, getDownloadPath, getFileName } from "./helpers";
 import { settings } from "./Settings";
 
@@ -77,7 +78,7 @@ class DownloadManager {
 
 	private listeners = new Set<(state: QueueState) => void>();
 	private cancelRequested = false;
-	private isProcessing = false;
+	private activeWorkers = 0;
 	public unloads = new Set<LunaUnload>();
 
 	public getState(): QueueState {
@@ -120,6 +121,12 @@ class DownloadManager {
 		} else {
 			this.state.overallPercent = 0;
 		}
+
+		// Keep activeTrackId pointing to an active downloading/checking track
+		const active =
+			this.state.tracks.find((t) => t.status === "downloading") ||
+			this.state.tracks.find((t) => t.status === "checking");
+		this.state.activeTrackId = active?.id;
 
 		const snapshot = this.getState();
 		this.listeners.forEach((fn) => {
@@ -195,9 +202,7 @@ class DownloadManager {
 		track.totalMB = "0";
 		this.notify();
 
-		if (!this.isProcessing) {
-			this.processQueue();
-		}
+		this.triggerQueue();
 	}
 
 	public async retryAllFailed() {
@@ -215,9 +220,7 @@ class DownloadManager {
 		}
 		if (hasFailed) {
 			this.notify();
-			if (!this.isProcessing) {
-				this.processQueue();
-			}
+			this.triggerQueue();
 		}
 	}
 
@@ -306,54 +309,47 @@ class DownloadManager {
 		this.state.tracks = [...this.state.tracks, ...newTracks];
 		this.notify();
 
-		if (!this.isProcessing) {
-			this.processQueue();
-		}
+		this.triggerQueue();
 	}
 
 	/**
-	 * Sequential download worker
+	 * Worker pool trigger
 	 */
-	private async processQueue() {
-		if (this.isProcessing) return;
-		this.isProcessing = true;
-		this.state.status = "running";
-		this.cancelRequested = false;
-		this.notify();
+	private triggerQueue() {
+		const maxWorkers = Math.max(1, Math.min(4, settings.concurrentDownloads || 2));
+		const queuedCount = this.state.tracks.filter((t) => t.status === "queued").length;
 
-		try {
-			while (true) {
-				const nextTrack = this.state.tracks.find((t) => t.status === "queued");
-				if (!nextTrack || this.cancelRequested) break;
-
-				await this.downloadSingleTrack(nextTrack);
-			}
-		} finally {
-			this.isProcessing = false;
-			this.state.activeTrackId = undefined;
-
-			if (this.cancelRequested) {
-				this.state.status = "cancelled";
-				for (const t of this.state.tracks) {
-					if (t.status === "queued") {
-						t.status = "cancelled";
-						t.statusText = "Cancelled";
-					}
-				}
-			} else {
+		if (queuedCount === 0 && this.activeWorkers === 0) {
+			if (this.state.status === "running") {
 				const hasErrors = this.state.tracks.some((t) => t.status === "error");
 				this.state.status = hasErrors ? "error" : "completed";
+				this.notify();
 			}
+			return;
+		}
 
-			this.cancelRequested = false;
+		this.state.status = "running";
+		this.cancelRequested = false;
+
+		while (this.activeWorkers < maxWorkers) {
+			const nextTrack = this.state.tracks.find((t) => t.status === "queued");
+			if (!nextTrack || this.cancelRequested) break;
+
+			this.activeWorkers++;
+			nextTrack.status = "checking";
 			this.notify();
+
+			this.downloadSingleTrack(nextTrack).finally(() => {
+				this.activeWorkers--;
+				this.notify();
+				this.triggerQueue();
+			});
 		}
 	}
 
 	private async downloadSingleTrack(track: QueueTrack) {
-		this.state.activeTrackId = track.id;
 		track.status = "checking";
-		track.statusText = settings.useRealMAX ? "RealMAX: Searching highest FLAC quality..." : "Reading metadata & quality...";
+		track.statusText = settings.useRealMAX ? "RealMAX: Searching highest FLAC..." : "Checking metadata...";
 		this.notify();
 
 		let mediaItem = track.mediaItem;
@@ -374,7 +370,7 @@ class DownloadManager {
 				track.coverUrl = await mediaItem.coverUrl({ res: "160" }).catch(() => undefined);
 			}
 
-			// Fetch exact audio format specs (bit depth, sample rate, bitrate)
+			// Fetch exact audio format specs
 			const fmt = await mediaItem.updateFormat(settings.downloadQuality).catch(() => undefined);
 			if (fmt) {
 				track.audioFormat = fmt;
@@ -388,7 +384,7 @@ class DownloadManager {
 				return;
 			}
 
-			track.statusText = "Fetching tags and filename...";
+			track.statusText = "Resolving path and tags...";
 			this.notify();
 
 			const { tags } = await mediaItem.flacTags();
@@ -404,6 +400,17 @@ class DownloadManager {
 			if (path === undefined) {
 				track.status = "cancelled";
 				track.statusText = "Cancelled (no path chosen)";
+				this.notify();
+				return;
+			}
+
+			track.filePath = Array.isArray(path) ? path.join("/") : path;
+
+			// Smart Skip check: If file already exists on disk
+			if (settings.skipExisting && (await fileExists(path))) {
+				track.status = "completed";
+				track.progressPercent = 100;
+				track.statusText = track.formatInfo ? `Already downloaded (${track.formatInfo})` : "Already downloaded";
 				this.notify();
 				return;
 			}
@@ -450,10 +457,22 @@ class DownloadManager {
 					}
 				}
 
+				// Download synchronized lyrics (.lrc) if enabled
+				if (settings.saveLrcFile) {
+					try {
+						const lyrics = await mediaItem.lyrics().catch(() => undefined);
+						const lyricsContent = lyrics?.subtitles || lyrics?.lyrics;
+						if (lyricsContent) {
+							await saveLyricsFile(path, lyricsContent);
+						}
+					} catch (lyricsErr) {
+						trace.err.withContext("downloadSingleTrack.lyrics")(lyricsErr as Error);
+					}
+				}
+
 				track.status = "completed";
 				track.progressPercent = 100;
 				track.statusText = track.formatInfo ? `Downloaded (${track.formatInfo})` : "Completed";
-				track.filePath = Array.isArray(path) ? path.join("/") : path;
 			} catch (downloadErr) {
 				stopProgress = true;
 				progressInterval();
