@@ -1,5 +1,6 @@
 import { MediaItem, observe, StyleTag } from "@luna/lib";
 
+import { debounce } from "@inrixia/helpers";
 import styles from "file://styles.css?minify";
 import { unloads } from "./index.safe";
 import { setFormatInfo } from "./setFormatInfo";
@@ -41,5 +42,13 @@ attrObserver.observe(document.body, {
 });
 unloads.add(() => attrObserver.disconnect());
 
+// Update formatInfo on context changes
 MediaItem.onMediaTransition(unloads, setFormatInfo);
 MediaItem.fromPlaybackContext().then(setFormatInfo);
+
+// Update formatInfo on qualityContainer changes
+observe(
+	unloads,
+	'[class*="_qualityBadgeContainer"] span > span',
+	debounce(() => MediaItem.fromPlaybackContext().then(setFormatInfo), 100),
+);

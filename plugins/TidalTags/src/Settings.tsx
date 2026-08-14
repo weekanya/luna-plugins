@@ -1,8 +1,6 @@
 import { ReactiveStore } from "@luna/core";
-import { MediaItem } from "@luna/lib";
 import { LunaSettings, LunaSwitchSetting } from "@luna/ui";
 import React from "react";
-import { formatInfoElem, setFormatInfo } from "./setFormatInfo";
 
 export const settings = await ReactiveStore.getPluginStorage("TidalTags", {
 	displayFormatBorder: true,
@@ -18,16 +16,6 @@ export const Settings = () => {
 	const [autoPopulateColumns, setAutoPopulateColumns] = React.useState(settings.autoPopulateColumns);
 	return (
 		<LunaSettings>
-			<LunaSwitchSetting
-				title="Format info border"
-				desc="Display a border around format Info"
-				checked={displayFormatBorder}
-				onChange={(_, checked) => {
-					setDisplayFormatBorder((settings.displayFormatBorder = checked));
-					if (!checked) formatInfoElem.style.border = "none";
-					else MediaItem.fromPlaybackContext().then(setFormatInfo);
-				}}
-			/>
 			<LunaSwitchSetting
 				title="Quality tags"
 				desc="Display quality tags in the tracklist"
