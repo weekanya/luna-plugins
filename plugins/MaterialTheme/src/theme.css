@@ -1,47 +1,73 @@
 /* ==========================================================================
-   Material Design 3 (Expressive) Clean Global Theme for Tidal
+   Material Design 3 (Expressive) Theme for Tidal
+   Based on WEE Material Design System (mb/index.html)
    Author: weekanya
    ========================================================================== */
 
 :root {
-	/* Canonical MD3 Dark Color Tokens (HCT) */
-	--md-sys-color-primary: #d0bcff;
-	--md-sys-color-on-primary: #381e72;
-	--md-sys-color-primary-container: #4f378b;
-	--md-sys-color-on-primary-container: #eaddff;
+	color-scheme: dark;
 
-	--md-sys-color-secondary: #ccc2dc;
-	--md-sys-color-on-secondary: #332d41;
-	--md-sys-color-secondary-container: #4a4458;
-	--md-sys-color-on-secondary-container: #e8def8;
+	/* Exact MD3 Color Tokens from mb/index.html */
+	--primary: #c9c1ff;
+	--on-primary: #30285f;
+	--primary-container: #464075;
+	--on-primary-container: #e5deff;
 
-	--md-sys-color-surface: #141218;
-	--md-sys-color-surface-dim: #100e14;
-	--md-sys-color-surface-container-lowest: #0f0d13;
-	--md-sys-color-surface-container-low: #1d1b20;
-	--md-sys-color-surface-container: #211f26;
-	--md-sys-color-surface-container-high: #2b2930;
-	--md-sys-color-surface-container-highest: #36343b;
+	--secondary: #c8c3dc;
+	--on-secondary: #302e41;
+	--secondary-container: #474459;
+	--on-secondary-container: #e4dff8;
 
-	--md-sys-color-on-surface: #e6e0e9;
-	--md-sys-color-on-surface-variant: #cac4d0;
-	--md-sys-color-outline: #938f99;
-	--md-sys-color-outline-variant: #49454f;
+	--tertiary: #b9c4ff;
+	--on-tertiary: #202d61;
+	--tertiary-container: #374474;
+	--on-tertiary-container: #dce1ff;
 
-	/* Tidal System Wave Variables */
-	--wave-color-solid-accent-fill: var(--md-sys-color-primary) !important;
-	--wave-color-interactive-primary: var(--md-sys-color-primary) !important;
-	--wave-color-solid-base-primary: var(--md-sys-color-surface-container-lowest) !important;
-	--wave-color-solid-base-secondary: var(--md-sys-color-surface-container) !important;
-	--wave-color-background-primary: var(--md-sys-color-surface-container-lowest) !important;
-	--wave-color-background-secondary: var(--md-sys-color-surface-container-low) !important;
-	--wave-color-background-tertiary: var(--md-sys-color-surface-container) !important;
-	--wave-color-text-primary: var(--md-sys-color-on-surface) !important;
-	--wave-color-text-secondary: var(--md-sys-color-on-surface-variant) !important;
+	--surface: #19191f;
+	--surface-dim: #19191f;
+	--surface-bright: #424148;
+	--surface-container-lowest: #141419;
+	--surface-container-low: #202027;
+	--surface-container: #25242c;
+	--surface-container-high: #2f2e36;
+	--surface-container-highest: #3a3941;
+
+	--on-surface: #e5e1ea;
+	--on-surface-variant: #c9c4d0;
+	--outline: #928e9a;
+	--outline-variant: #47464f;
+
+	--state-hover: rgba(229, 225, 234, 0.08);
+	--state-press: rgba(229, 225, 234, 0.10);
+	--focus: #c9c1ff;
+
+	/* Shapes */
+	--radius-xs: 4px;
+	--radius-sm: 8px;
+	--radius-md: 12px;
+	--radius-lg: 16px;
+	--radius-xl: 28px;
+	--radius-full: 9999px;
+
+	/* Transitions */
+	--ease-standard: cubic-bezier(0.2, 0, 0, 1);
+	--duration-short: 150ms;
+	--duration-medium: 300ms;
+
+	/* Tidal System Wave Variable Overrides */
+	--wave-color-solid-accent-fill: var(--primary) !important;
+	--wave-color-interactive-primary: var(--primary) !important;
+	--wave-color-solid-base-primary: var(--surface) !important;
+	--wave-color-solid-base-secondary: var(--surface-container) !important;
+	--wave-color-background-primary: var(--surface) !important;
+	--wave-color-background-secondary: var(--surface-container-low) !important;
+	--wave-color-background-tertiary: var(--surface-container-high) !important;
+	--wave-color-text-primary: var(--on-surface) !important;
+	--wave-color-text-secondary: var(--on-surface-variant) !important;
 }
 
 /* ==========================================================================
-   1. Base Surface & Clean Dark Backgrounds (No Muddy Bleeds)
+   1. Base Surface & Clean Dark Backgrounds
    ========================================================================== */
 
 body,
@@ -49,12 +75,13 @@ body,
 #appRoot,
 main,
 [class*="mainContainer"] {
-	background-color: var(--md-sys-color-surface-container-lowest) !important;
-	color: var(--md-sys-color-on-surface) !important;
-	font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif !important;
+	background-color: var(--surface) !important;
+	color: var(--on-surface) !important;
+	font-family: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+	-webkit-font-smoothing: antialiased !important;
 }
 
-/* Minimal MD3 Scrollbar */
+/* Custom Minimal Scrollbars */
 ::-webkit-scrollbar {
 	width: 6px !important;
 	height: 6px !important;
@@ -65,152 +92,153 @@ main,
 }
 
 ::-webkit-scrollbar-thumb {
-	background: var(--md-sys-color-outline-variant) !important;
-	border-radius: 3px !important;
+	background: var(--outline-variant) !important;
+	border-radius: var(--radius-xs) !important;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background: var(--md-sys-color-outline) !important;
+	background: var(--outline) !important;
 }
 
 /* ==========================================================================
-   2. Clean Sidebar (#sidebar)
+   2. MD3 Sidebar Navigation (#sidebar)
    ========================================================================== */
 
 #sidebar {
-	background-color: var(--md-sys-color-surface-container-low) !important;
-	border-right: 1px solid var(--md-sys-color-outline-variant) !important;
+	background-color: var(--surface-container-lowest) !important;
+	border-right: 1px solid var(--outline-variant) !important;
 }
 
-/* Sidebar navigation links */
 #sidebar a,
 #sidebar button {
-	transition: background-color 0.15s ease, color 0.15s ease !important;
+	transition: background-color var(--duration-short) var(--ease-standard), color var(--duration-short) var(--ease-standard) !important;
 }
 
-/* Selected active link */
+/* Active navigation item */
 #sidebar a[aria-current="page"],
 #sidebar [class*="selected"],
 #sidebar [class*="active"] {
-	color: var(--md-sys-color-primary) !important;
-	font-weight: 600 !important;
+	color: var(--primary) !important;
+	font-weight: 700 !important;
 }
 
 /* ==========================================================================
-   3. Clean Top Header & Search Bar
+   3. MD3 Top Header & Search Bar
    ========================================================================== */
 
-/* Top header background */
 [class*="mainContainer"] > [class*="bar"],
 [class*="headerBar"] {
-	background-color: var(--md-sys-color-surface-container-lowest) !important;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+	background-color: var(--surface) !important;
+	border-bottom: 1px solid var(--outline-variant) !important;
 }
 
 /* Search input */
 input[type="search"],
 input[type="text"][class*="search"] {
-	background-color: var(--md-sys-color-surface-container-high) !important;
-	border: 1px solid var(--md-sys-color-outline-variant) !important;
-	border-radius: 20px !important;
-	color: var(--md-sys-color-on-surface) !important;
-	padding: 6px 16px !important;
-	font-size: 13px !important;
+	background-color: var(--surface-container-high) !important;
+	border: 1px solid var(--outline-variant) !important;
+	border-radius: var(--radius-full) !important;
+	color: var(--on-surface) !important;
+	padding: 8px 18px !important;
+	font-size: 13.5px !important;
 	outline: none !important;
+	transition: border-color var(--duration-short) var(--ease-standard), background-color var(--duration-short) !important;
 }
 
 input[type="search"]:focus,
 input[type="text"][class*="search"]:focus {
-	border-color: var(--md-sys-color-primary) !important;
-	box-shadow: 0 0 0 1px var(--md-sys-color-primary) !important;
+	border-color: var(--primary) !important;
+	background-color: var(--surface-container-highest) !important;
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 30%, transparent) !important;
 }
 
 /* ==========================================================================
-   4. Clean Cards, Plugins List & Grid Elements
+   4. MD3 Cards & Content Boxes (Exact mb/index.html Style)
    ========================================================================== */
 
-/* Media cards & settings boxes */
 [class*="gridItem"],
 [class*="mediaCard"],
 [class*="albumCard"],
 [class*="card"] {
-	background-color: var(--md-sys-color-surface-container) !important;
-	border: 1px solid var(--md-sys-color-outline-variant) !important;
-	border-radius: 16px !important;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
-	transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), border-color 0.2s, box-shadow 0.2s !important;
+	background-color: var(--surface-container) !important;
+	border: 1px solid var(--outline-variant) !important;
+	border-radius: var(--radius-lg) !important;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+	transition: transform var(--duration-medium) var(--ease-standard), border-color var(--duration-short) var(--ease-standard), box-shadow var(--duration-short) !important;
 }
 
 [class*="gridItem"]:hover,
 [class*="mediaCard"]:hover,
 [class*="albumCard"]:hover {
-	border-color: var(--md-sys-color-primary) !important;
-	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4) !important;
+	transform: translateY(-3px) !important;
+	border-color: var(--primary) !important;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
 }
 
 /* Card images */
 [class*="mediaCard"] img,
 [class*="albumCard"] img {
-	border-radius: 12px !important;
+	border-radius: var(--radius-md) !important;
 }
 
 /* ==========================================================================
-   5. Clean Tracklist Rows
+   5. MD3 Tracklist Rows
    ========================================================================== */
 
 [class*="trackItem"],
 [class*="trackRow"],
 [data-test="track"] {
-	border-radius: 8px !important;
-	transition: background-color 0.15s ease !important;
+	border-radius: var(--radius-md) !important;
+	transition: background-color var(--duration-short) var(--ease-standard) !important;
 }
 
 [class*="trackItem"]:hover,
 [class*="trackRow"]:hover,
 [data-test="track"]:hover {
-	background-color: var(--md-sys-color-surface-container-high) !important;
+	background-color: var(--surface-container-high) !important;
 }
 
-/* Currently playing track */
+/* Playing track highlight */
 [class*="trackItem"][class*="playing"],
 [class*="trackRow"][class*="active"] {
-	background-color: var(--md-sys-color-surface-container) !important;
+	background-color: var(--surface-container) !important;
 }
 
 [class*="trackItem"][class*="playing"] [class*="title"],
 [class*="trackRow"][class*="active"] [class*="title"] {
-	color: var(--md-sys-color-primary) !important;
-	font-weight: 600 !important;
+	color: var(--primary) !important;
+	font-weight: 700 !important;
 }
 
 /* ==========================================================================
-   6. Clean Bottom Player Bar (#footerPlayer)
+   6. MD3 Player Bar (#footerPlayer)
    ========================================================================== */
 
 #footerPlayer {
-	background-color: var(--md-sys-color-surface-container-low) !important;
-	border-top: 1px solid var(--md-sys-color-outline-variant) !important;
-	box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.35) !important;
+	background-color: color-mix(in srgb, var(--surface-container) 94%, transparent) !important;
+	backdrop-filter: blur(16px) !important;
+	-webkit-backdrop-filter: blur(16px) !important;
+	border-top: 1px solid var(--outline-variant) !important;
+	box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35) !important;
 }
 
-/* Album Art in Player */
 #footerPlayer img {
-	border-radius: 8px !important;
+	border-radius: var(--radius-sm) !important;
 }
 
-/* Play/Pause Button - Centered Round FAB */
+/* Circular Play/Pause Button */
 #footerPlayer button[class*="playButton"],
 #footerPlayer button[data-test="play-button"] {
-	background-color: var(--md-sys-color-primary) !important;
-	color: var(--md-sys-color-on-primary) !important;
+	background-color: var(--primary) !important;
+	color: var(--on-primary) !important;
 	border-radius: 50% !important;
-	width: 40px !important;
-	height: 40px !important;
+	width: 44px !important;
+	height: 44px !important;
 	display: flex !important;
 	align-items: center !important;
 	justify-content: center !important;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
-	transition: transform 0.15s ease, filter 0.15s ease !important;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+	transition: transform var(--duration-short) var(--ease-standard), filter var(--duration-short) !important;
 }
 
 #footerPlayer button[class*="playButton"]:hover,
@@ -219,42 +247,43 @@ input[type="text"][class*="search"]:focus {
 	filter: brightness(1.08) !important;
 }
 
-/* Progress & Volume Slider Filled Bars */
+/* Active Sliders & Progress */
 [role="slider"] [class*="fill"],
 [class*="progressBar"] [class*="progress"],
 [class*="scrubber"] [class*="progress"] {
-	background-color: var(--md-sys-color-primary) !important;
+	background-color: var(--primary) !important;
 }
 
-/* Secondary Player Buttons (Shuffle, Repeat, Next, Prev) */
+/* Secondary Buttons */
 #footerPlayer button:not([class*="playButton"]):not([data-test="play-button"]):hover {
-	color: var(--md-sys-color-primary) !important;
+	color: var(--primary) !important;
 }
 
 /* ==========================================================================
-   7. Clean Context Menus & Dropdowns
+   7. MD3 Context Menus & Popups
    ========================================================================== */
 
 [role="menu"],
 [class*="contextMenu"],
 [class*="dropdown"] {
-	background-color: var(--md-sys-color-surface-container-high) !important;
-	border: 1px solid var(--md-sys-color-outline-variant) !important;
-	border-radius: 12px !important;
-	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
-	padding: 4px !important;
+	background-color: var(--surface-container-high) !important;
+	border: 1px solid var(--outline-variant) !important;
+	border-radius: var(--radius-lg) !important;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+	padding: 6px !important;
 }
 
 [role="menuitem"],
 [class*="menuItem"] {
-	border-radius: 8px !important;
-	padding: 6px 12px !important;
-	font-size: 13px !important;
-	color: var(--md-sys-color-on-surface) !important;
+	border-radius: var(--radius-sm) !important;
+	padding: 8px 14px !important;
+	font-size: 13.5px !important;
+	color: var(--on-surface) !important;
+	transition: background-color var(--duration-short) var(--ease-standard) !important;
 }
 
 [role="menuitem"]:hover,
 [class*="menuItem"]:hover {
-	background-color: var(--md-sys-color-surface-container-highest) !important;
-	color: var(--md-sys-color-primary) !important;
+	background-color: var(--surface-container-highest) !important;
+	color: var(--primary) !important;
 }

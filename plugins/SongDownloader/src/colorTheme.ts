@@ -6,10 +6,10 @@ export interface M3Palette {
 }
 
 const defaultPalette: M3Palette = {
-	primary: [208, 188, 255],
-	primaryContainer: [79, 55, 139],
-	onPrimaryContainer: [234, 221, 255],
-	surfaceContainer: [33, 31, 38],
+	primary: [201, 193, 255], // #c9c1ff
+	primaryContainer: [70, 64, 117], // #464075
+	onPrimaryContainer: [229, 222, 255], // #e5deff
+	surfaceContainer: [37, 36, 44], // #25242c
 };
 
 let currentPalette: M3Palette = { ...defaultPalette };
@@ -34,7 +34,7 @@ const applyPaletteToElement = (palette: M3Palette) => {
 	}
 };
 
-export const animateToPalette = (targetPalette: M3Palette, duration = 600) => {
+export const animateToPalette = (targetPalette: M3Palette, duration = 400) => {
 	if (currentAnimFrame !== null) {
 		cancelAnimationFrame(currentAnimFrame);
 		currentAnimFrame = null;
@@ -52,7 +52,6 @@ export const animateToPalette = (targetPalette: M3Palette, duration = 600) => {
 	const frame = (now: number) => {
 		const elapsed = now - startTime;
 		const progress = Math.min(1, elapsed / duration);
-		// MD3 Emphasized Decelerate Easing
 		const t = 1 - Math.pow(1 - progress, 3);
 
 		currentPalette = {
@@ -71,11 +70,7 @@ export const animateToPalette = (targetPalette: M3Palette, duration = 600) => {
 				lerp(startPalette.onPrimaryContainer[1], targetPalette.onPrimaryContainer[1], t),
 				lerp(startPalette.onPrimaryContainer[2], targetPalette.onPrimaryContainer[2], t),
 			],
-			surfaceContainer: [
-				lerp(startPalette.surfaceContainer[0], targetPalette.surfaceContainer[0], t),
-				lerp(startPalette.surfaceContainer[1], targetPalette.surfaceContainer[1], t),
-				lerp(startPalette.surfaceContainer[2], targetPalette.surfaceContainer[2], t),
-			],
+			surfaceContainer: defaultPalette.surfaceContainer,
 		};
 
 		applyPaletteToElement(currentPalette);
@@ -91,12 +86,9 @@ export const animateToPalette = (targetPalette: M3Palette, duration = 600) => {
 };
 
 export const resetDynamicTheme = () => {
-	animateToPalette(defaultPalette, 400);
+	animateToPalette(defaultPalette, 300);
 };
 
-/**
- * Extracts vibrant dominant color from cover image URL via Blob to avoid CORS taint in Electron
- */
 export const extractPaletteFromCover = async (coverUrl: string): Promise<M3Palette | null> => {
 	try {
 		let blobUrl = coverUrl;
@@ -110,9 +102,7 @@ export const extractPaletteFromCover = async (coverUrl: string): Promise<M3Palet
 					blobUrl = URL.createObjectURL(blob);
 					isBlobCreated = true;
 				}
-			} catch (fetchErr) {
-				console.warn("[SongDownloader:Theme] Direct blob fetch failed, falling back to img.src", fetchErr);
-			}
+			} catch (_) {}
 		}
 
 		return await new Promise<M3Palette | null>((resolve) => {
@@ -132,8 +122,8 @@ export const extractPaletteFromCover = async (coverUrl: string): Promise<M3Palet
 					const { data } = ctx.getImageData(0, 0, 32, 32);
 					if (isBlobCreated) URL.revokeObjectURL(blobUrl);
 
-					let bestR = 208;
-					let bestG = 188;
+					let bestR = 201;
+					let bestG = 193;
 					let bestB = 255;
 					let maxScore = -1;
 
@@ -147,10 +137,10 @@ export const extractPaletteFromCover = async (coverUrl: string): Promise<M3Palet
 						const max = Math.max(r, g, b);
 						const min = Math.min(r, g, b);
 						const l = (max + min) / 510;
-						if (l < 0.12 || l > 0.88) continue; // skip pure black/white
+						if (l < 0.15 || l > 0.85) continue;
 
 						const s = max === min ? 0 : (max - min) / (l > 0.5 ? 510 - max - min : max + min);
-						const score = s * 0.8 + (1 - Math.abs(l - 0.6)) * 0.2;
+						const score = s * 0.8 + (1 - Math.abs(l - 0.55)) * 0.2;
 
 						if (score > maxScore) {
 							maxScore = score;
@@ -160,30 +150,25 @@ export const extractPaletteFromCover = async (coverUrl: string): Promise<M3Palet
 						}
 					}
 
-					// Build harmonious MD3 dark theme tokens
 					const primary: [number, number, number] = [
-						Math.min(255, Math.max(160, Math.round(bestR * 1.15 + 15))),
-						Math.min(255, Math.max(150, Math.round(bestG * 1.15 + 15))),
-						Math.min(255, Math.max(170, Math.round(bestB * 1.15 + 15))),
+						Math.min(255, Math.max(170, Math.round(bestR * 1.1 + 25))),
+						Math.min(255, Math.max(160, Math.round(bestG * 1.1 + 25))),
+						Math.min(255, Math.max(180, Math.round(bestB * 1.1 + 25))),
 					];
 
 					const primaryContainer: [number, number, number] = [
-						Math.round(bestR * 0.35 + 20),
-						Math.round(bestG * 0.35 + 15),
-						Math.round(bestB * 0.35 + 35),
+						Math.round(bestR * 0.35 + 25),
+						Math.round(bestG * 0.35 + 20),
+						Math.round(bestB * 0.35 + 40),
 					];
 
 					const onPrimaryContainer: [number, number, number] = [
-						Math.min(255, Math.round(bestR * 1.25 + 40)),
-						Math.min(255, Math.round(bestG * 1.25 + 40)),
-						Math.min(255, Math.round(bestB * 1.25 + 40)),
+						Math.min(255, Math.round(bestR * 1.25 + 45)),
+						Math.min(255, Math.round(bestG * 1.25 + 45)),
+						Math.min(255, Math.round(bestB * 1.25 + 45)),
 					];
 
-					const surfaceContainer: [number, number, number] = [
-						Math.round(26 + bestR * 0.05),
-						Math.round(24 + bestG * 0.05),
-						Math.round(30 + bestB * 0.05),
-					];
+					const surfaceContainer: [number, number, number] = defaultPalette.surfaceContainer;
 
 					resolve({ primary, primaryContainer, onPrimaryContainer, surfaceContainer });
 				} catch (err) {
@@ -198,7 +183,6 @@ export const extractPaletteFromCover = async (coverUrl: string): Promise<M3Palet
 			img.src = blobUrl;
 		});
 	} catch (e) {
-		console.warn("[SongDownloader:Theme] Error extracting palette", e);
 		return null;
 	}
 };

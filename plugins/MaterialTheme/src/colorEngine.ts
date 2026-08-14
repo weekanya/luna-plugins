@@ -11,17 +11,18 @@ export interface M3ThemePalette {
 	outlineVariant: [number, number, number];
 }
 
+// Canonical WEE MD3 Palette from mb/index.html
 export const defaultM3DarkPalette: M3ThemePalette = {
-	primary: [208, 188, 255],
-	onPrimary: [56, 30, 114],
-	primaryContainer: [79, 55, 139],
-	onPrimaryContainer: [234, 221, 255],
-	surface: [20, 18, 24],
-	surfaceContainerLow: [29, 27, 32],
-	surfaceContainer: [33, 31, 38],
-	surfaceContainerHigh: [43, 41, 48],
-	surfaceContainerHighest: [54, 52, 59],
-	outlineVariant: [73, 69, 79],
+	primary: [201, 193, 255], // #c9c1ff
+	onPrimary: [48, 40, 95], // #30285f
+	primaryContainer: [70, 64, 117], // #464075
+	onPrimaryContainer: [229, 222, 255], // #e5deff
+	surface: [25, 25, 31], // #19191f
+	surfaceContainerLow: [32, 32, 39], // #202027
+	surfaceContainer: [37, 36, 44], // #25242c
+	surfaceContainerHigh: [47, 46, 54], // #2f2e36
+	surfaceContainerHighest: [58, 57, 65], // #3a3941
+	outlineVariant: [71, 70, 79], // #47464f
 };
 
 let currentThemePalette: M3ThemePalette = { ...defaultM3DarkPalette };
@@ -36,17 +37,17 @@ export const applyPaletteToRoot = (palette: M3ThemePalette) => {
 	const rawStr = (c: [number, number, number]) => c.join(",");
 
 	const vars: Record<string, string> = {
-		// Material Design 3 HCT Tokens
-		"--md-sys-color-primary": rgbStr(palette.primary),
-		"--md-sys-color-on-primary": rgbStr(palette.onPrimary),
-		"--md-sys-color-primary-container": rgbStr(palette.primaryContainer),
-		"--md-sys-color-on-primary-container": rgbStr(palette.onPrimaryContainer),
-		"--md-sys-color-surface": rgbStr(palette.surface),
-		"--md-sys-color-surface-container-low": rgbStr(palette.surfaceContainerLow),
-		"--md-sys-color-surface-container": rgbStr(palette.surfaceContainer),
-		"--md-sys-color-surface-container-high": rgbStr(palette.surfaceContainerHigh),
-		"--md-sys-color-surface-container-highest": rgbStr(palette.surfaceContainerHighest),
-		"--md-sys-color-outline-variant": rgbStr(palette.outlineVariant),
+		"--primary": rgbStr(palette.primary),
+		"--on-primary": rgbStr(palette.onPrimary),
+		"--primary-container": rgbStr(palette.primaryContainer),
+		"--on-primary-container": rgbStr(palette.onPrimaryContainer),
+		"--surface": rgbStr(palette.surface),
+		"--surface-container-lowest": `rgb(${Math.max(0, palette.surface[0] - 5)}, ${Math.max(0, palette.surface[1] - 5)}, ${Math.max(0, palette.surface[2] - 5)})`,
+		"--surface-container-low": rgbStr(palette.surfaceContainerLow),
+		"--surface-container": rgbStr(palette.surfaceContainer),
+		"--surface-container-high": rgbStr(palette.surfaceContainerHigh),
+		"--surface-container-highest": rgbStr(palette.surfaceContainerHighest),
+		"--outline-variant": rgbStr(palette.outlineVariant),
 
 		// Tidal System Wave Variable Overrides
 		"--wave-color-solid-accent-fill": rgbStr(palette.primary),
@@ -68,7 +69,7 @@ export const applyPaletteToRoot = (palette: M3ThemePalette) => {
 	}
 };
 
-export const animateThemeTo = (targetPalette: M3ThemePalette, duration = 600) => {
+export const animateThemeTo = (targetPalette: M3ThemePalette, duration = 400) => {
 	if (animFrameId !== null) {
 		cancelAnimationFrame(animFrameId);
 		animFrameId = null;
@@ -127,7 +128,7 @@ export const animateThemeTo = (targetPalette: M3ThemePalette, duration = 600) =>
 };
 
 export const resetToDefaultTheme = () => {
-	animateThemeTo(defaultM3DarkPalette, 400);
+	animateThemeTo(defaultM3DarkPalette, 300);
 };
 
 /**
@@ -166,8 +167,8 @@ export const extractM3Palette = async (coverUrl: string): Promise<M3ThemePalette
 					const { data } = ctx.getImageData(0, 0, 32, 32);
 					if (isBlob) URL.revokeObjectURL(blobUrl);
 
-					let bestR = 208,
-						bestG = 188,
+					let bestR = 201,
+						bestG = 193,
 						bestB = 255;
 					let maxScore = -1;
 
@@ -194,7 +195,6 @@ export const extractM3Palette = async (coverUrl: string): Promise<M3ThemePalette
 						}
 					}
 
-					// Harmonious Material Design 3 HCT Dark Palette (Clean solid surfaces + dynamic accents)
 					const primary: [number, number, number] = [
 						Math.min(255, Math.max(170, Math.round(bestR * 1.1 + 25))),
 						Math.min(255, Math.max(160, Math.round(bestG * 1.1 + 25))),
