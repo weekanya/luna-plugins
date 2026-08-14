@@ -37,6 +37,7 @@ export interface QueueState {
 	errorCount: number;
 	totalCount: number;
 	overallPercent: number;
+	useRealMAX: boolean;
 }
 
 class DownloadManager {
@@ -50,6 +51,7 @@ class DownloadManager {
 		errorCount: 0,
 		totalCount: 0,
 		overallPercent: 0,
+		useRealMAX: settings.useRealMAX,
 	};
 
 	private listeners = new Set<(state: QueueState) => void>();
@@ -58,7 +60,16 @@ class DownloadManager {
 	public unloads = new Set<LunaUnload>();
 
 	public getState(): QueueState {
-		return { ...this.state };
+		return {
+			...this.state,
+			useRealMAX: settings.useRealMAX,
+		};
+	}
+
+	public setRealMAX(enabled: boolean) {
+		settings.useRealMAX = enabled;
+		this.state.useRealMAX = enabled;
+		this.notify();
 	}
 
 	public subscribe(listener: (state: QueueState) => void): () => void {
@@ -77,6 +88,7 @@ class DownloadManager {
 		this.state.completedCount = completed;
 		this.state.errorCount = error;
 		this.state.totalCount = total;
+		this.state.useRealMAX = settings.useRealMAX;
 
 		if (total > 0) {
 			const sumPercent = this.state.tracks.reduce((acc, t) => {
@@ -275,7 +287,6 @@ class DownloadManager {
 
 			if (this.cancelRequested) {
 				this.state.status = "cancelled";
-				// Mark any remaining queued items as cancelled
 				for (const t of this.state.tracks) {
 					if (t.status === "queued") {
 						t.status = "cancelled";
@@ -295,7 +306,7 @@ class DownloadManager {
 	private async downloadSingleTrack(track: QueueTrack) {
 		this.state.activeTrackId = track.id;
 		track.status = "checking";
-		track.statusText = "Checking RealMAX & Quality...";
+		track.statusText = settings.useRealMAX ? "RealMAX: Searching highest FLAC quality..." : "Reading metadata & quality...";
 		this.notify();
 
 		let mediaItem = track.mediaItem;

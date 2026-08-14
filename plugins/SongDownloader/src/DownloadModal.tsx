@@ -19,13 +19,15 @@ export const DownloadModal: React.FC = () => {
 		errorCount,
 		totalCount,
 		overallPercent,
+		useRealMAX,
 	} = state;
 
-	// Active track object
-	const activeTrack = tracks.find((t) => t.id === activeTrackId) || tracks.find((t) => t.status === "downloading" || t.status === "checking");
+	const activeTrack =
+		tracks.find((t) => t.id === activeTrackId) ||
+		tracks.find((t) => t.status === "downloading" || t.status === "checking");
 	const pendingCount = Math.max(0, totalCount - completedCount - errorCount);
 
-	// If minimized, render the floating mini-widget
+	// Floating Mini Widget (MD3 Extended FAB Style)
 	if (isMinimized && tracks.length > 0) {
 		const radius = 14;
 		const circumference = 2 * Math.PI * radius;
@@ -35,12 +37,6 @@ export const DownloadModal: React.FC = () => {
 			<div className="sd-mini-widget" onClick={() => downloadManager.openModal()}>
 				<div className="sd-mini-ring">
 					<svg width="36" height="36">
-						<defs>
-							<linearGradient id="sd-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-								<stop offset="0%" stopColor="#9e46ff" />
-								<stop offset="100%" stopColor="#31d8ff" />
-							</linearGradient>
-						</defs>
 						<circle className="bg" cx="18" cy="18" r={radius} />
 						<circle
 							className="progress"
@@ -77,11 +73,18 @@ export const DownloadModal: React.FC = () => {
 			}}
 		>
 			<div className="sd-modal">
-				{/* Modal Header */}
+				{/* MD3 Dialog Header (Section 4.6) */}
 				<div className="sd-header">
 					<div className="sd-header-left">
 						<div className="sd-header-icon">⚡</div>
-						<div className="sd-header-title">{batchTitle}</div>
+						<div className="sd-header-title-wrap">
+							<div className="sd-header-title" title={batchTitle}>
+								{batchTitle}
+							</div>
+							<div className="sd-header-subtitle">
+								{totalCount > 0 ? `${totalCount} tracks in queue` : "Download Manager"}
+							</div>
+						</div>
 					</div>
 					<div className="sd-header-actions">
 						<button
@@ -89,11 +92,11 @@ export const DownloadModal: React.FC = () => {
 							title="Minimize to widget"
 							onClick={() => downloadManager.setMinimized(true)}
 						>
-							_
+							─
 						</button>
 						<button
 							className="sd-icon-btn close"
-							title="Close window"
+							title="Close dialog"
 							onClick={() => downloadManager.closeModal()}
 						>
 							✕
@@ -101,33 +104,55 @@ export const DownloadModal: React.FC = () => {
 					</div>
 				</div>
 
-				{/* Overall Progress Section */}
-				<div className="sd-overall-section">
-					<div className="sd-overall-meta">
-						<div className="sd-overall-stats">
-							<span className="sd-stat-pill pending">
-								{completedCount} of {totalCount} tracks
-							</span>
-							{completedCount > 0 && <span className="sd-stat-pill success">✓ {completedCount} Done</span>}
-							{errorCount > 0 && <span className="sd-stat-pill error">✗ {errorCount} Failed</span>}
-							{pendingCount > 0 && status === "running" && (
-								<span className="sd-stat-pill pending">⏳ {pendingCount} Remaining</span>
-							)}
-						</div>
-						<span style={{ fontWeight: 700, fontSize: "13px", color: "var(--sd-secondary)" }}>
-							{overallPercent}%
+				{/* MD3 RealMAX Status Bar & Switch (Section 4.11) */}
+				<div className="sd-realmax-bar">
+					<div className="sd-realmax-info">
+						<span className={`sd-realmax-badge ${useRealMAX ? "on" : "off"}`}>
+							{useRealMAX ? "⚡ RealMAX ON" : "RealMAX OFF"}
 						</span>
+						<div>
+							<div className="sd-realmax-label">RealMAX Quality Finder</div>
+							<div className="sd-realmax-desc">
+								{useRealMAX
+									? "Searches highest FLAC quality across all releases"
+									: "Downloads standard selected quality"}
+							</div>
+						</div>
 					</div>
-					<div className="sd-progress-bar-bg">
-						<div className="sd-progress-bar-fill" style={{ width: `${overallPercent}%` }} />
+					<div
+						className={`md3-switch ${useRealMAX ? "checked" : ""}`}
+						title="Toggle RealMAX quality finder"
+						onClick={() => downloadManager.setRealMAX(!useRealMAX)}
+					>
+						<div className="md3-switch-thumb" />
 					</div>
 				</div>
 
-				{/* Active Track Highlight Card */}
+				{/* MD3 Overall Progress Section (Section 4.13) */}
+				<div className="sd-overall-section">
+					<div className="sd-overall-meta">
+						<div className="sd-overall-chips">
+							<span className="md3-chip neutral">
+								{completedCount} / {totalCount} tracks
+							</span>
+							{completedCount > 0 && <span className="md3-chip success">✓ {completedCount} Done</span>}
+							{errorCount > 0 && <span className="md3-chip error">✗ {errorCount} Failed</span>}
+							{pendingCount > 0 && status === "running" && (
+								<span className="md3-chip neutral">⏳ {pendingCount} Remaining</span>
+							)}
+						</div>
+						<span className="sd-overall-percent">{overallPercent}%</span>
+					</div>
+					<div className="md3-linear-progress">
+						<div className="md3-linear-progress-bar" style={{ width: `${overallPercent}%` }} />
+					</div>
+				</div>
+
+				{/* Active Track Highlight Card (MD3 Outlined Card 4.3) */}
 				{activeTrack && (
 					<div className="sd-active-card">
 						{activeTrack.coverUrl ? (
-							<img className="sd-active-cover" src={activeTrack.coverUrl} alt="Cover" />
+							<img className="sd-active-cover" src={activeTrack.coverUrl} alt="Album Cover" />
 						) : (
 							<div className="sd-active-cover-placeholder">🎵</div>
 						)}
@@ -147,9 +172,9 @@ export const DownloadModal: React.FC = () => {
 							</div>
 
 							<div className="sd-active-progress-wrap">
-								<div className="sd-progress-bar-bg" style={{ height: "4px" }}>
+								<div className="md3-linear-progress">
 									<div
-										className="sd-progress-bar-fill"
+										className="md3-linear-progress-bar"
 										style={{ width: `${activeTrack.progressPercent}%` }}
 									/>
 								</div>
@@ -162,10 +187,17 @@ export const DownloadModal: React.FC = () => {
 					</div>
 				)}
 
-				{/* Track List */}
+				{/* MD3 Track List */}
 				<div className="sd-track-list">
 					{tracks.length === 0 ? (
-						<div style={{ textAlign: "center", padding: "30px", color: "#71717a", fontSize: "13px" }}>
+						<div
+							style={{
+								textAlign: "center",
+								padding: "36px 0",
+								color: "var(--md-sys-color-on-surface-variant)",
+								fontSize: "14px",
+							}}
+						>
 							No tracks in download queue.
 						</div>
 					) : (
@@ -175,26 +207,26 @@ export const DownloadModal: React.FC = () => {
 					)}
 				</div>
 
-				{/* Footer Controls */}
+				{/* MD3 Dialog Actions (Section 4.1 Buttons: 40dp height, 20dp radius) */}
 				<div className="sd-footer">
 					<div className="sd-footer-left">
 						{status === "running" && (
-							<button className="sd-btn danger" onClick={() => downloadManager.cancel()}>
+							<button className="md3-btn tonal-error" onClick={() => downloadManager.cancel()}>
 								⏹ Stop
 							</button>
 						)}
 						{errorCount > 0 && (
-							<button className="sd-btn secondary" onClick={() => downloadManager.retryAllFailed()}>
+							<button className="md3-btn tonal" onClick={() => downloadManager.retryAllFailed()}>
 								🔁 Retry Failed ({errorCount})
 							</button>
 						)}
 						{completedCount > 0 && status !== "running" && (
-							<button className="sd-btn secondary" onClick={() => downloadManager.clearFinished()}>
+							<button className="md3-btn tonal" onClick={() => downloadManager.clearFinished()}>
 								🧹 Clear Completed
 							</button>
 						)}
 					</div>
-					<button className="sd-btn primary" onClick={() => downloadManager.closeModal()}>
+					<button className="md3-btn filled" onClick={() => downloadManager.closeModal()}>
 						Close
 					</button>
 				</div>
@@ -227,8 +259,7 @@ const TrackRow: React.FC<TrackRowProps> = ({ track, isActive }) => {
 						display: "flex",
 						alignItems: "center",
 						justifyContent: "center",
-						fontSize: "14px",
-						background: "rgba(255,255,255,0.05)",
+						fontSize: "16px",
 					}}
 				>
 					🎵
@@ -245,18 +276,19 @@ const TrackRow: React.FC<TrackRowProps> = ({ track, isActive }) => {
 				{track.error && <div className="sd-track-error-msg">{track.error}</div>}
 			</div>
 
-			{/* Status pill / Actions */}
+			{/* MD3 Status Chips & Action Buttons */}
 			{track.status === "queued" && <span className="sd-status-badge queued">⏳ Queued</span>}
-			{track.status === "checking" && <span className="sd-status-badge downloading">⚡ Checking...</span>}
+			{track.status === "checking" && <span className="sd-status-badge checking">⚡ Checking...</span>}
 			{track.status === "downloading" && (
 				<span className="sd-status-badge downloading">
 					⬇️ {track.progressPercent}%
 				</span>
 			)}
-			{track.status === "completed" && <span className="sd-status-badge completed">✓ Downloaded</span>}
+			{track.status === "completed" && <span className="sd-status-badge completed">✓ Done</span>}
 			{track.status === "error" && (
 				<button
-					className="sd-retry-btn"
+					className="md3-btn tonal-error"
+					style={{ height: "28px", padding: "0 10px", fontSize: "11.5px", borderRadius: "14px" }}
 					title="Retry download"
 					onClick={() => downloadManager.retryTrack(track.id)}
 				>
@@ -265,7 +297,8 @@ const TrackRow: React.FC<TrackRowProps> = ({ track, isActive }) => {
 			)}
 			{track.status === "cancelled" && (
 				<button
-					className="sd-retry-btn"
+					className="md3-btn tonal"
+					style={{ height: "28px", padding: "0 10px", fontSize: "11.5px", borderRadius: "14px" }}
 					title="Resume download"
 					onClick={() => downloadManager.retryTrack(track.id)}
 				>
