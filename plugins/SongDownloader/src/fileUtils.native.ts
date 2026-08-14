@@ -51,7 +51,6 @@ export const verifyAudioFileIntegrity = async (path: string | string[]): Promise
 
 		// 1. Check for FLAC ("fLaC" magic signature: 0x66, 0x4c, 0x61, 0x43)
 		if (buffer[0] === 0x66 && buffer[1] === 0x4c && buffer[2] === 0x61 && buffer[3] === 0x43) {
-			// Check first metadata block header (must be STREAMINFO = type 0)
 			const blockHeader = buffer[4];
 			const blockType = blockHeader & 0x7f;
 			if (blockType !== 0) {
@@ -87,6 +86,24 @@ export const saveLyricsFile = async (audioPath: string | string[], lyricsContent
 	} catch (e) {
 		console.error("Failed to save lyrics file", e);
 		return false;
+	}
+};
+
+export const saveTextFile = async (
+	folderPath: string | undefined,
+	fileName: string,
+	content: string,
+): Promise<string | undefined> => {
+	try {
+		const targetDir = folderPath || process.env.HOME || "/tmp";
+		await mkdir(targetDir, { recursive: true });
+		const cleanName = sanitize(fileName);
+		const fullPath = join(targetDir, cleanName);
+		await writeFile(fullPath, content, "utf8");
+		return fullPath;
+	} catch (e) {
+		console.error("Failed to save text file", e);
+		return undefined;
 	}
 };
 

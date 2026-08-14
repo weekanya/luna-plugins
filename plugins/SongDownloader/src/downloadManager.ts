@@ -6,6 +6,7 @@ import {
 	getNativeDownloadProgress,
 	nativeDownloadTrack,
 	saveLyricsFile,
+	saveTextFile,
 	verifyAudioFileIntegrity,
 } from "./fileUtils.native";
 import { getDownloadFolder, getDownloadPath, getFileName } from "./helpers";
@@ -236,6 +237,37 @@ class DownloadManager {
 		this.state.overallPercent = 0;
 		this.cancelRequested = false;
 		this.notify();
+	}
+
+	public async exportTracklistTxt(): Promise<string | undefined> {
+		if (this.state.tracks.length === 0) return undefined;
+
+		const headerLines = [
+			`=======================================================`,
+			`🎵 ${this.state.batchTitle.toUpperCase()}`,
+			`📊 Всего треков: ${this.state.tracks.length}`,
+			`📅 Дата экспорта: ${new Date().toLocaleString()}`,
+			`=======================================================`,
+			"",
+		];
+
+		const trackLines = this.state.tracks.map((t, idx) => {
+			const albumStr = t.album ? ` - ${t.album}` : "";
+			return `${idx + 1}. ${t.artist}${albumStr} - ${t.title}`;
+		});
+
+		const content = [...headerLines, ...trackLines].join("\n");
+
+		try {
+			if (navigator?.clipboard) {
+				await navigator.clipboard.writeText(content);
+			}
+		} catch (_) {}
+
+		const cleanTitle = this.state.batchTitle.replace(/[^\w\s-]/g, "").trim() || "Tracklist";
+		const fileName = `${cleanTitle}.txt`;
+		const saveDir = this.state.downloadFolder || settings.defaultPath;
+		return saveTextFile(saveDir, fileName, content);
 	}
 
 	public async retryTrack(id: string) {

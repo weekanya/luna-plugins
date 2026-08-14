@@ -7,6 +7,7 @@ import {
 	ClearAllIcon,
 	CloseIcon,
 	CloudDownloadIcon,
+	DescriptionIcon,
 	ErrorIcon,
 	MinimizeIcon,
 	MusicNoteIcon,
@@ -20,6 +21,7 @@ import { settings } from "./Settings";
 
 export const DownloadModal: React.FC = () => {
 	const [state, setState] = useState<QueueState>(downloadManager.getState());
+	const [exportToast, setExportToast] = useState<string | null>(null);
 
 	// Draggable widget state
 	const [widgetPos, setWidgetPos] = useState<{ x: number; y: number } | null>(null);
@@ -375,6 +377,20 @@ export const DownloadModal: React.FC = () => {
 							<button className="md3-btn tonal" onClick={() => downloadManager.clearFinished()}>
 								<CheckIcon size={16} />
 								Clear Completed
+							</button>
+						)}
+						{tracks.length > 0 && (
+							<button
+								className="md3-btn tonal"
+								onClick={async () => {
+									const savedPath = await downloadManager.exportTracklistTxt();
+									setExportToast(savedPath ? "Saved & Copied!" : "Copied to Clipboard!");
+									setTimeout(() => setExportToast(null), 2500);
+								}}
+								title="Export tracklist to .txt file and copy to clipboard"
+							>
+								<DescriptionIcon size={16} />
+								{exportToast || "Export .txt"}
 							</button>
 						)}
 						{tracks.length > 0 && status !== "running" && (
