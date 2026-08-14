@@ -1,5 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { downloadManager, type QueueState, type QueueTrack } from "./downloadManager";
+import {
+	BoltIcon,
+	CheckIcon,
+	ClearAllIcon,
+	CloseIcon,
+	CloudDownloadIcon,
+	ErrorIcon,
+	MinimizeIcon,
+	MusicNoteIcon,
+	PlayArrowIcon,
+	RefreshIcon,
+	ScheduleIcon,
+	StopIcon,
+	SyncIcon,
+} from "./icons";
 
 export const DownloadModal: React.FC = () => {
 	const [state, setState] = useState<QueueState>(downloadManager.getState());
@@ -76,7 +91,9 @@ export const DownloadModal: React.FC = () => {
 				{/* MD3 Dialog Header (Section 4.6) */}
 				<div className="sd-header">
 					<div className="sd-header-left">
-						<div className="sd-header-icon">⚡</div>
+						<div className="sd-header-icon">
+							<CloudDownloadIcon size={22} />
+						</div>
 						<div className="sd-header-title-wrap">
 							<div className="sd-header-title" title={batchTitle}>
 								{batchTitle}
@@ -89,17 +106,17 @@ export const DownloadModal: React.FC = () => {
 					<div className="sd-header-actions">
 						<button
 							className="sd-icon-btn"
-							title="Minimize to widget"
+							title="Minimize"
 							onClick={() => downloadManager.setMinimized(true)}
 						>
-							─
+							<MinimizeIcon size={18} />
 						</button>
 						<button
 							className="sd-icon-btn close"
 							title="Close dialog"
 							onClick={() => downloadManager.closeModal()}
 						>
-							✕
+							<CloseIcon size={18} />
 						</button>
 					</div>
 				</div>
@@ -108,14 +125,15 @@ export const DownloadModal: React.FC = () => {
 				<div className="sd-realmax-bar">
 					<div className="sd-realmax-info">
 						<span className={`sd-realmax-badge ${useRealMAX ? "on" : "off"}`}>
-							{useRealMAX ? "⚡ RealMAX ON" : "RealMAX OFF"}
+							<BoltIcon size={14} style={{ marginRight: 4 }} />
+							{useRealMAX ? "RealMAX Active" : "RealMAX Disabled"}
 						</span>
 						<div>
 							<div className="sd-realmax-label">RealMAX Quality Finder</div>
 							<div className="sd-realmax-desc">
 								{useRealMAX
-									? "Searches highest FLAC quality across all releases"
-									: "Downloads standard selected quality"}
+									? "Automatically finds the highest FLAC audio quality"
+									: "Downloads the default selected quality"}
 							</div>
 						</div>
 					</div>
@@ -133,12 +151,26 @@ export const DownloadModal: React.FC = () => {
 					<div className="sd-overall-meta">
 						<div className="sd-overall-chips">
 							<span className="md3-chip neutral">
+								<CloudDownloadIcon size={14} />
 								{completedCount} / {totalCount} tracks
 							</span>
-							{completedCount > 0 && <span className="md3-chip success">✓ {completedCount} Done</span>}
-							{errorCount > 0 && <span className="md3-chip error">✗ {errorCount} Failed</span>}
+							{completedCount > 0 && (
+								<span className="md3-chip success">
+									<CheckIcon size={14} />
+									{completedCount} Completed
+								</span>
+							)}
+							{errorCount > 0 && (
+								<span className="md3-chip error">
+									<ErrorIcon size={14} />
+									{errorCount} Failed
+								</span>
+							)}
 							{pendingCount > 0 && status === "running" && (
-								<span className="md3-chip neutral">⏳ {pendingCount} Remaining</span>
+								<span className="md3-chip neutral">
+									<ScheduleIcon size={14} />
+									{pendingCount} Remaining
+								</span>
 							)}
 						</div>
 						<span className="sd-overall-percent">{overallPercent}%</span>
@@ -154,7 +186,9 @@ export const DownloadModal: React.FC = () => {
 						{activeTrack.coverUrl ? (
 							<img className="sd-active-cover" src={activeTrack.coverUrl} alt="Album Cover" />
 						) : (
-							<div className="sd-active-cover-placeholder">🎵</div>
+							<div className="sd-active-cover-placeholder">
+								<MusicNoteIcon size={28} />
+							</div>
 						)}
 						<div className="sd-active-info">
 							<div>
@@ -212,17 +246,20 @@ export const DownloadModal: React.FC = () => {
 					<div className="sd-footer-left">
 						{status === "running" && (
 							<button className="md3-btn tonal-error" onClick={() => downloadManager.cancel()}>
-								⏹ Stop
+								<StopIcon size={16} />
+								Stop
 							</button>
 						)}
 						{errorCount > 0 && (
 							<button className="md3-btn tonal" onClick={() => downloadManager.retryAllFailed()}>
-								🔁 Retry Failed ({errorCount})
+								<RefreshIcon size={16} />
+								Retry Failed ({errorCount})
 							</button>
 						)}
 						{completedCount > 0 && status !== "running" && (
 							<button className="md3-btn tonal" onClick={() => downloadManager.clearFinished()}>
-								🧹 Clear Completed
+								<ClearAllIcon size={16} />
+								Clear Completed
 							</button>
 						)}
 					</div>
@@ -259,10 +296,10 @@ const TrackRow: React.FC<TrackRowProps> = ({ track, isActive }) => {
 						display: "flex",
 						alignItems: "center",
 						justifyContent: "center",
-						fontSize: "16px",
+						color: "var(--md-sys-color-on-surface-variant)",
 					}}
 				>
-					🎵
+					<MusicNoteIcon size={18} />
 				</div>
 			)}
 
@@ -276,15 +313,31 @@ const TrackRow: React.FC<TrackRowProps> = ({ track, isActive }) => {
 				{track.error && <div className="sd-track-error-msg">{track.error}</div>}
 			</div>
 
-			{/* MD3 Status Chips & Action Buttons */}
-			{track.status === "queued" && <span className="sd-status-badge queued">⏳ Queued</span>}
-			{track.status === "checking" && <span className="sd-status-badge checking">⚡ Checking...</span>}
-			{track.status === "downloading" && (
-				<span className="sd-status-badge downloading">
-					⬇️ {track.progressPercent}%
+			{/* MD3 Status Chips & Action Buttons with Google Icons */}
+			{track.status === "queued" && (
+				<span className="sd-status-badge queued">
+					<ScheduleIcon size={13} />
+					Queued
 				</span>
 			)}
-			{track.status === "completed" && <span className="sd-status-badge completed">✓ Done</span>}
+			{track.status === "checking" && (
+				<span className="sd-status-badge checking">
+					<SyncIcon size={13} />
+					Checking...
+				</span>
+			)}
+			{track.status === "downloading" && (
+				<span className="sd-status-badge downloading">
+					<CloudDownloadIcon size={13} />
+					{track.progressPercent}%
+				</span>
+			)}
+			{track.status === "completed" && (
+				<span className="sd-status-badge completed">
+					<CheckIcon size={13} />
+					Done
+				</span>
+			)}
 			{track.status === "error" && (
 				<button
 					className="md3-btn tonal-error"
@@ -292,7 +345,8 @@ const TrackRow: React.FC<TrackRowProps> = ({ track, isActive }) => {
 					title="Retry download"
 					onClick={() => downloadManager.retryTrack(track.id)}
 				>
-					🔁 Retry
+					<RefreshIcon size={13} />
+					Retry
 				</button>
 			)}
 			{track.status === "cancelled" && (
@@ -302,7 +356,8 @@ const TrackRow: React.FC<TrackRowProps> = ({ track, isActive }) => {
 					title="Resume download"
 					onClick={() => downloadManager.retryTrack(track.id)}
 				>
-					▶ Resume
+					<PlayArrowIcon size={13} />
+					Resume
 				</button>
 			)}
 		</div>

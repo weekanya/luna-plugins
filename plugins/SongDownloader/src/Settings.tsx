@@ -2,7 +2,7 @@ import { ReactiveStore } from "@luna/core";
 import { MediaItem, Quality, type redux } from "@luna/lib";
 import { LunaButtonSetting, LunaSelectItem, LunaSelectSetting, LunaSettings, LunaSwitchSetting, LunaTextSetting } from "@luna/ui";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { downloadManager } from "./downloadManager";
 import { getDownloadFolder } from "./helpers";
 
@@ -29,6 +29,13 @@ export const Settings = () => {
 	const [pathFormat, setPathFormat] = React.useState(settings.pathFormat);
 	const [useRealMAX, setUseRealMAX] = React.useState(settings.useRealMAX);
 
+	// Sync RealMAX state bidirectionally with DownloadManager
+	useEffect(() => {
+		return downloadManager.subscribe((state) => {
+			setUseRealMAX(state.useRealMAX);
+		});
+	}, []);
+
 	return (
 		<LunaSettings>
 			<LunaButtonSetting
@@ -50,7 +57,9 @@ export const Settings = () => {
 			<LunaSwitchSetting
 				title="Use RealMAX to find the highest quality"
 				value={useRealMAX}
-				onChange={(_, checked) => setUseRealMAX((settings.useRealMAX = checked))}
+				onChange={(_, checked) => {
+					downloadManager.setRealMAX(checked);
+				}}
 			/>
 			<LunaButtonSetting
 				title="Default save path"
