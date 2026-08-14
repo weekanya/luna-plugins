@@ -9,6 +9,6 @@
 	},
 	"exports": "./src/index.tsx",
 	"dependencies": {
-		"node-vibrant": "4.0.3"
+		"node-vibrant": "4.0.4"
 	}
 }

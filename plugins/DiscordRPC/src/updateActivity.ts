@@ -3,8 +3,8 @@ import { MediaItem, PlayState, redux } from "@luna/lib";
 import type { SetActivity } from "@xhayper/discord-rpc";
 import { fmtStr, getStatusText } from "./activityTextHelpers";
 import { setActivity, StatusDisplayTypeEnum } from "./discord.native";
+import { errSignal, trace } from "./index";
 import { settings } from "./Settings";
-import { trace, errSignal } from "./index";
 
 // Proxy this so we dont try import a node native module
 const StatusDisplayType = await StatusDisplayTypeEnum();
@@ -61,11 +61,7 @@ const executeUpdate = async (mediaItem?: MediaItem) => {
  * Internal update implementation (no debounce/mutex)
  */
 const _updateActivity = async (mediaItem?: MediaItem) => {
-<<<<<<< HEAD
-	if (!PlayState.playing && !settings.displayOnPause) return await setActivity();
-=======
 	if (!PlayState.playing && !settings.displayOnPause) return await setActivity(undefined, settings.pipeId);
->>>>>>> master
 
 	mediaItem ??= await MediaItem.fromPlaybackContext();
 	if (mediaItem === undefined) return;
@@ -74,7 +70,7 @@ const _updateActivity = async (mediaItem?: MediaItem) => {
 
 	const activity: SetActivity = { type: 2 }; // Listening type
 
-	const trackUrl = `https://tidal.com/${mediaItem.tidalItem.contentType}/${mediaItem.id}/u`
+	const trackUrl = `https://tidal.com/${mediaItem.tidalItem.contentType}/${mediaItem.id}/u`;
 	const trackSourceUrl = `https://tidal.com/browse${sourceUrl}`;
 
 	activity.buttons = [
