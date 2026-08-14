@@ -67,7 +67,7 @@
 }
 
 /* ==========================================================================
-   1. Base Surface & Clean Dark Backgrounds
+   1. Base Surface
    ========================================================================== */
 
 body,
@@ -81,7 +81,7 @@ main,
 	-webkit-font-smoothing: antialiased !important;
 }
 
-/* Custom Minimal Scrollbars */
+/* Minimal MD3 Scrollbars */
 ::-webkit-scrollbar {
 	width: 6px !important;
 	height: 6px !important;
@@ -101,7 +101,7 @@ main,
 }
 
 /* ==========================================================================
-   2. MD3 Sidebar Navigation (#sidebar)
+   2. MD3 Sidebar (#sidebar)
    ========================================================================== */
 
 #sidebar {
@@ -109,21 +109,30 @@ main,
 	border-right: 1px solid var(--outline-variant) !important;
 }
 
-#sidebar a,
-#sidebar button {
+/* Main Navigation Items (Music, Explore, Feed, etc.) */
+#sidebar [class*="navItem"] a,
+#sidebar [class*="sidebarItem"] a {
+	border-radius: var(--radius-full) !important;
 	transition: background-color var(--duration-short) var(--ease-standard), color var(--duration-short) var(--ease-standard) !important;
 }
 
-/* Active navigation item */
+#sidebar [class*="navItem"] a:hover,
+#sidebar [class*="sidebarItem"] a:hover {
+	background-color: var(--surface-container-high) !important;
+	color: var(--on-surface) !important;
+}
+
+/* Active navigation pill indicator */
 #sidebar a[aria-current="page"],
-#sidebar [class*="selected"],
-#sidebar [class*="active"] {
-	color: var(--primary) !important;
+#sidebar [class*="navItem"][class*="active"] a,
+#sidebar [class*="sidebarItem"][class*="active"] a {
+	background-color: var(--secondary-container) !important;
+	color: var(--on-secondary-container) !important;
 	font-weight: 700 !important;
 }
 
 /* ==========================================================================
-   3. MD3 Top Header & Search Bar
+   3. Top Bar & Search
    ========================================================================== */
 
 [class*="mainContainer"] > [class*="bar"],
@@ -139,8 +148,8 @@ input[type="text"][class*="search"] {
 	border: 1px solid var(--outline-variant) !important;
 	border-radius: var(--radius-full) !important;
 	color: var(--on-surface) !important;
-	padding: 8px 18px !important;
-	font-size: 13.5px !important;
+	padding: 6px 16px !important;
+	font-size: 13px !important;
 	outline: none !important;
 	transition: border-color var(--duration-short) var(--ease-standard), background-color var(--duration-short) !important;
 }
@@ -153,36 +162,34 @@ input[type="text"][class*="search"]:focus {
 }
 
 /* ==========================================================================
-   4. MD3 Cards & Content Boxes (Exact mb/index.html Style)
+   4. Media Tiles & Individual Cards (NO Giant Section Boxes)
    ========================================================================== */
 
-[class*="gridItem"],
-[class*="mediaCard"],
-[class*="albumCard"],
-[class*="card"] {
-	background-color: var(--surface-container) !important;
-	border: 1px solid var(--outline-variant) !important;
+/* Individual album/mix cover tiles */
+[data-test="grid-item"],
+[class*="gridCell"] > div,
+[class*="carouselItem"] > div {
 	border-radius: var(--radius-lg) !important;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
-	transition: transform var(--duration-medium) var(--ease-standard), border-color var(--duration-short) var(--ease-standard), box-shadow var(--duration-short) !important;
+	transition: transform var(--duration-medium) var(--ease-standard), box-shadow var(--duration-short) !important;
 }
 
-[class*="gridItem"]:hover,
-[class*="mediaCard"]:hover,
-[class*="albumCard"]:hover {
-	transform: translateY(-3px) !important;
-	border-color: var(--primary) !important;
+[data-test="grid-item"]:hover,
+[class*="gridCell"] > div:hover,
+[class*="carouselItem"] > div:hover {
+	transform: translateY(-4px) !important;
 	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
 }
 
-/* Card images */
-[class*="mediaCard"] img,
-[class*="albumCard"] img {
+/* Rounded image corners */
+[data-test="grid-item"] img,
+[class*="gridCell"] img,
+[class*="carouselItem"] img,
+[class*="mediaItemImage"] img {
 	border-radius: var(--radius-md) !important;
 }
 
 /* ==========================================================================
-   5. MD3 Tracklist Rows
+   5. Tracklist Rows
    ========================================================================== */
 
 [class*="trackItem"],
@@ -211,56 +218,71 @@ input[type="text"][class*="search"]:focus {
 }
 
 /* ==========================================================================
-   6. MD3 Player Bar (#footerPlayer)
+   6. MD3 Bottom Player Bar (#footerPlayer)
    ========================================================================== */
 
 #footerPlayer {
-	background-color: color-mix(in srgb, var(--surface-container) 94%, transparent) !important;
-	backdrop-filter: blur(16px) !important;
-	-webkit-backdrop-filter: blur(16px) !important;
+	background-color: var(--surface-container-lowest) !important;
 	border-top: 1px solid var(--outline-variant) !important;
 	box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35) !important;
+	padding: 10px 24px !important;
 }
 
 #footerPlayer img {
 	border-radius: var(--radius-sm) !important;
 }
 
-/* Circular Play/Pause Button */
-#footerPlayer button[class*="playButton"],
-#footerPlayer button[data-test="play-button"] {
+/* Circular Play/Pause FAB Button */
+#footerPlayer button[data-test*="play"],
+#footerPlayer button[data-test*="pause"],
+#footerPlayer button[class*="play"],
+#footerPlayer [class*="playbackControls"] > button:nth-child(3),
+#footerPlayer button[aria-label*="Play"],
+#footerPlayer button[aria-label*="Pause"] {
 	background-color: var(--primary) !important;
 	color: var(--on-primary) !important;
 	border-radius: 50% !important;
 	width: 44px !important;
 	height: 44px !important;
-	display: flex !important;
+	min-width: 44px !important;
+	min-height: 44px !important;
+	display: inline-flex !important;
 	align-items: center !important;
 	justify-content: center !important;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
 	transition: transform var(--duration-short) var(--ease-standard), filter var(--duration-short) !important;
 }
 
-#footerPlayer button[class*="playButton"]:hover,
-#footerPlayer button[data-test="play-button"]:hover {
+#footerPlayer button[data-test*="play"]:hover,
+#footerPlayer button[data-test*="pause"]:hover,
+#footerPlayer button[class*="play"]:hover {
 	transform: scale(1.08) !important;
 	filter: brightness(1.08) !important;
 }
 
-/* Active Sliders & Progress */
-[role="slider"] [class*="fill"],
-[class*="progressBar"] [class*="progress"],
-[class*="scrubber"] [class*="progress"] {
+/* Player Timeline & Duration Display (Clean Alignment) */
+#footerPlayer [class*="playbackProgress"],
+#footerPlayer [class*="timeControls"] {
+	display: flex !important;
+	align-items: center !important;
+	gap: 12px !important;
+}
+
+/* Active Timeline and Volume Sliders */
+#footerPlayer [role="slider"] [class*="fill"],
+#footerPlayer [class*="progressBar"] [class*="progress"],
+#footerPlayer [class*="scrubber"] [class*="progress"],
+#footerPlayer [class*="slider"] [class*="fill"] {
 	background-color: var(--primary) !important;
 }
 
-/* Secondary Buttons */
-#footerPlayer button:not([class*="playButton"]):not([data-test="play-button"]):hover {
+/* Player Secondary Controls Hover */
+#footerPlayer button:not([data-test*="play"]):not([data-test*="pause"]):hover {
 	color: var(--primary) !important;
 }
 
 /* ==========================================================================
-   7. MD3 Context Menus & Popups
+   7. Context Menus & Dialogs
    ========================================================================== */
 
 [role="menu"],
