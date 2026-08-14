@@ -258,8 +258,14 @@ export const DownloadModal: React.FC = () => {
 						)}
 						{completedCount > 0 && status !== "running" && (
 							<button className="md3-btn tonal" onClick={() => downloadManager.clearFinished()}>
-								<ClearAllIcon size={16} />
+								<CheckIcon size={16} />
 								Clear Completed
+							</button>
+						)}
+						{tracks.length > 0 && status !== "running" && (
+							<button className="md3-btn text" onClick={() => downloadManager.clearAll()} title="Clear all download history">
+								<ClearAllIcon size={16} />
+								Clear All
 							</button>
 						)}
 					</div>

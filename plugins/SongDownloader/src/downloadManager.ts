@@ -149,6 +149,20 @@ class DownloadManager {
 		this.notify();
 	}
 
+	public clearAll() {
+		if (this.state.status === "running") {
+			this.cancel();
+		}
+		this.state.tracks = [];
+		this.state.activeTrackId = undefined;
+		this.state.status = "idle";
+		this.state.completedCount = 0;
+		this.state.errorCount = 0;
+		this.state.totalCount = 0;
+		this.state.overallPercent = 0;
+		this.notify();
+	}
+
 	public async retryTrack(id: string) {
 		const track = this.state.tracks.find((t) => t.id === id);
 		if (!track) return;

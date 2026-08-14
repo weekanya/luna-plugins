@@ -1,11 +1,11 @@
 {
 	"name": "Song Downloader",
-	"description": "Download tidal songs as FLAC files.",
-	"homepage": "https://github.com/Inrixia/luna-plugins#SongDownloader",
+	"description": "Download Tidal songs as FLAC files with Material 3 Download Manager.",
+	"homepage": "https://github.com/weekanya/luna-plugins#SongDownloader",
 	"author": {
-		"name": "Inrixia",
-		"url": "https://github.com/Inrixia",
-		"avatarUrl": "https://2.gravatar.com/avatar/eeaffef9eb9b436dccc58c6c44c9fe8c3528e83e3bf64e1c736a68dbe8c097d3"
+		"name": "weekanya",
+		"url": "https://github.com/weekanya",
+		"avatarUrl": "https://github.com/weekanya.png"
 	},
 	"main": "./src/index.tsx",
 	"dependencies": {
