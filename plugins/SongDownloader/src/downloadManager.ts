@@ -1,6 +1,6 @@
 import { Tracer, type LunaUnload } from "@luna/core";
 import { MediaItem, safeInterval, type MediaCollection, type MediaFormat } from "@luna/lib";
-import { fileExists, saveLyricsFile } from "./fileUtils.native";
+import { fileExists, getNativeDownloadProgress, nativeDownloadTrack, saveLyricsFile } from "./fileUtils.native";
 import { getDownloadFolder, getDownloadPath, getFileName } from "./helpers";
 import { settings } from "./Settings";
 
@@ -136,7 +136,7 @@ class DownloadManager {
 			this.state.overallPercent = 0;
 		}
 
-		// Active track prioritize downloading first, then checking
+		// Pick currently active downloading/checking track
 		const active =
 			this.state.tracks.find((t) => t.status === "downloading") ||
 			this.state.tracks.find((t) => t.status === "checking");
@@ -175,22 +175,20 @@ class DownloadManager {
 	}
 
 	public cancel() {
-		if (this.state.status === "running" || this.state.status === "cancelling") {
-			this.cancelRequested = true;
-			this.state.status = "cancelling";
-			for (const t of this.state.tracks) {
-				if (t.status === "queued") {
-					t.status = "cancelled";
-					t.statusText = "Cancelled";
-				}
+		this.cancelRequested = true;
+		this.state.status = "cancelling";
+		for (const t of this.state.tracks) {
+			if (t.status === "queued") {
+				t.status = "cancelled";
+				t.statusText = "Cancelled";
 			}
-			this.notify();
+		}
+		this.notify();
 
-			if (this.activeWorkers === 0) {
-				this.state.status = "cancelled";
-				this.cancelRequested = false;
-				this.notify();
-			}
+		if (this.activeWorkers === 0) {
+			this.state.status = "cancelled";
+			this.cancelRequested = false;
+			this.notify();
 		}
 	}
 
@@ -341,7 +339,7 @@ class DownloadManager {
 	}
 
 	/**
-	 * Worker pool trigger with strict cancellation and concurrency control
+	 * Worker pool trigger with true multi-threading concurrency
 	 */
 	private triggerQueue() {
 		if (this.cancelRequested || this.state.status === "cancelling") {
@@ -368,7 +366,7 @@ class DownloadManager {
 		this.state.status = "running";
 
 		while (this.activeWorkers < maxWorkers) {
-			if (this.cancelRequested || this.state.status === "cancelling") break;
+			if (this.cancelRequested || this.state.status === "cancelling" || this.state.status === "cancelled") break;
 			const nextTrack = this.state.tracks.find((t) => t.status === "queued");
 			if (!nextTrack) break;
 
@@ -386,7 +384,7 @@ class DownloadManager {
 
 	private async downloadSingleTrack(track: QueueTrack) {
 		track.status = "checking";
-		track.statusText = settings.useRealMAX ? "RealMAX: Searching highest FLAC..." : "Checking metadata...";
+		track.statusText = settings.useRealMAX ? "RealMAX: Finding highest FLAC..." : "Checking metadata...";
 		this.notify();
 
 		let mediaItem = track.mediaItem;
@@ -424,8 +422,15 @@ class DownloadManager {
 			track.statusText = "Resolving path and tags...";
 			this.notify();
 
-			const { tags } = await mediaItem.flacTags();
-			const fileName = await getFileName(mediaItem, settings.downloadQuality);
+			const [playbackInfo, flacTags, fileName] = await Promise.all([
+				mediaItem.playbackInfo(settings.downloadQuality),
+				mediaItem.flacTags(),
+				getFileName(mediaItem, settings.downloadQuality),
+			]);
+
+			if (!playbackInfo) {
+				throw new Error(`Track ${track.title} is not available for download`);
+			}
 
 			let path: string | string[] | undefined;
 			if (this.state.downloadFolder !== undefined) {
@@ -463,13 +468,13 @@ class DownloadManager {
 			track.statusText = "Starting download...";
 			this.notify();
 
-			// Progress monitor interval
+			// Progress monitor interval tracking native parallel download progress
 			let stopProgress = false;
 			const progressInterval = safeInterval(
 				this.unloads,
 				async () => {
 					if (stopProgress) return;
-					const progress = await mediaItem.downloadProgress().catch(() => undefined);
+					const progress = await getNativeDownloadProgress(playbackInfo.trackId).catch(() => undefined);
 					if (!progress) return;
 					const { total, downloaded } = progress;
 					if (total === undefined || downloaded === undefined || total === 0) return;
@@ -488,7 +493,8 @@ class DownloadManager {
 			);
 
 			try {
-				await mediaItem.download(path, settings.downloadQuality);
+				// True parallel native download bypassing Luna's Semaphore(1) bottleneck
+				await nativeDownloadTrack(playbackInfo, path, flacTags);
 				stopProgress = true;
 				progressInterval();
 
