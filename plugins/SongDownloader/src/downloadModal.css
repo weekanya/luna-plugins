@@ -1,0 +1,654 @@
+/* SongDownloader - Download Manager Modal & Mini Widget Styles */
+
+:root {
+	--sd-primary: #9e46ff;
+	--sd-primary-hover: #b46aff;
+	--sd-secondary: #31d8ff;
+	--sd-success: #10b981;
+	--sd-error: #f43f5e;
+	--sd-warning: #f59e0b;
+	--sd-bg-dark: rgba(18, 18, 26, 0.95);
+	--sd-card-bg: rgba(30, 30, 44, 0.7);
+	--sd-border: rgba(255, 255, 255, 0.1);
+	--sd-border-glow: rgba(158, 70, 255, 0.3);
+}
+
+/* Modal Overlay */
+.sd-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.65);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	z-index: 999990;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	animation: sdFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes sdFadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+/* Main Modal Window */
+.sd-modal {
+	width: 90vw;
+	max-width: 620px;
+	max-height: 85vh;
+	background: var(--sd-bg-dark);
+	border: 1px solid var(--sd-border-glow);
+	border-radius: 20px;
+	box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(158, 70, 255, 0.15);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	color: #fff;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	animation: sdSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes sdSlideUp {
+	from {
+		opacity: 0;
+		transform: translateY(20px) scale(0.97);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+/* Header */
+.sd-header {
+	padding: 16px 20px;
+	background: rgba(255, 255, 255, 0.03);
+	border-bottom: 1px solid var(--sd-border);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.sd-header-left {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+}
+
+.sd-header-icon {
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
+	background: linear-gradient(135deg, var(--sd-primary), var(--sd-secondary));
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 16px;
+	box-shadow: 0 4px 12px rgba(158, 70, 255, 0.3);
+}
+
+.sd-header-title {
+	font-size: 16px;
+	font-weight: 700;
+	letter-spacing: -0.2px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	background: linear-gradient(90deg, #fff, #d4d4d8);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+.sd-header-actions {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.sd-icon-btn {
+	width: 30px;
+	height: 30px;
+	border-radius: 8px;
+	border: 1px solid transparent;
+	background: rgba(255, 255, 255, 0.06);
+	color: #a1a1aa;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 14px;
+	transition: all 0.15s ease;
+}
+
+.sd-icon-btn:hover {
+	background: rgba(255, 255, 255, 0.12);
+	color: #fff;
+	border-color: var(--sd-border);
+}
+
+.sd-icon-btn.close:hover {
+	background: rgba(244, 63, 94, 0.2);
+	color: var(--sd-error);
+	border-color: rgba(244, 63, 94, 0.4);
+}
+
+/* Overall Progress Section */
+.sd-overall-section {
+	padding: 14px 20px;
+	background: rgba(0, 0, 0, 0.2);
+	border-bottom: 1px solid var(--sd-border);
+}
+
+.sd-overall-meta {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 13px;
+	margin-bottom: 8px;
+}
+
+.sd-overall-stats {
+	display: flex;
+	gap: 12px;
+}
+
+.sd-stat-pill {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	font-weight: 600;
+	padding: 2px 8px;
+	border-radius: 12px;
+}
+
+.sd-stat-pill.success {
+	background: rgba(16, 185, 129, 0.15);
+	color: var(--sd-success);
+	border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.sd-stat-pill.error {
+	background: rgba(244, 63, 94, 0.15);
+	color: var(--sd-error);
+	border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.sd-stat-pill.pending {
+	background: rgba(255, 255, 255, 0.08);
+	color: #d4d4d8;
+}
+
+.sd-progress-bar-bg {
+	height: 6px;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+	overflow: hidden;
+	position: relative;
+}
+
+.sd-progress-bar-fill {
+	height: 100%;
+	background: linear-gradient(90deg, var(--sd-primary), var(--sd-secondary));
+	border-radius: 4px;
+	transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+	box-shadow: 0 0 10px rgba(49, 216, 255, 0.5);
+}
+
+/* Active Track Highlight Card */
+.sd-active-card {
+	margin: 16px 20px 8px 20px;
+	padding: 14px;
+	background: var(--sd-card-bg);
+	border: 1px solid rgba(158, 70, 255, 0.35);
+	border-radius: 14px;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+	display: flex;
+	gap: 14px;
+	position: relative;
+	overflow: hidden;
+}
+
+.sd-active-card::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, var(--sd-secondary), var(--sd-primary), transparent);
+	animation: sdGlowLine 2s linear infinite;
+}
+
+@keyframes sdGlowLine {
+	0% {
+		background-position: -200% 0;
+	}
+	100% {
+		background-position: 200% 0;
+	}
+}
+
+.sd-active-cover {
+	width: 60px;
+	height: 60px;
+	border-radius: 10px;
+	object-fit: cover;
+	background: #27272a;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+	flex-shrink: 0;
+}
+
+.sd-active-cover-placeholder {
+	width: 60px;
+	height: 60px;
+	border-radius: 10px;
+	background: linear-gradient(135deg, #27272a, #3f3f46);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 24px;
+	flex-shrink: 0;
+}
+
+.sd-active-info {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.sd-active-title-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.sd-active-title {
+	font-size: 14px;
+	font-weight: 700;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: #fff;
+}
+
+.sd-quality-badge {
+	font-size: 10px;
+	font-weight: 800;
+	padding: 2px 6px;
+	border-radius: 6px;
+	background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(245, 158, 11, 0.2));
+	color: #fbbf24;
+	border: 1px solid rgba(245, 158, 11, 0.4);
+	letter-spacing: 0.5px;
+	flex-shrink: 0;
+}
+
+.sd-active-artist {
+	font-size: 12px;
+	color: #a1a1aa;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sd-active-progress-wrap {
+	margin-top: 6px;
+}
+
+.sd-active-progress-meta {
+	display: flex;
+	justify-content: space-between;
+	font-size: 11px;
+	color: #71717a;
+	margin-top: 4px;
+}
+
+.sd-active-progress-status {
+	color: var(--sd-secondary);
+	font-weight: 500;
+}
+
+/* Track List */
+.sd-track-list {
+	flex: 1;
+	overflow-y: auto;
+	padding: 8px 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-height: 140px;
+	max-height: 280px;
+}
+
+.sd-track-list::-webkit-scrollbar {
+	width: 6px;
+}
+
+.sd-track-list::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.15);
+	border-radius: 4px;
+}
+
+.sd-track-list::-webkit-scrollbar-thumb:hover {
+	background: rgba(255, 255, 255, 0.25);
+}
+
+.sd-track-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 12px;
+	border-radius: 10px;
+	background: rgba(255, 255, 255, 0.02);
+	border: 1px solid transparent;
+	transition: all 0.15s ease;
+}
+
+.sd-track-row:hover {
+	background: rgba(255, 255, 255, 0.05);
+	border-color: var(--sd-border);
+}
+
+.sd-track-row.active {
+	background: rgba(158, 70, 255, 0.12);
+	border-color: rgba(158, 70, 255, 0.3);
+}
+
+.sd-track-row.error {
+	background: rgba(244, 63, 94, 0.08);
+	border-color: rgba(244, 63, 94, 0.2);
+}
+
+.sd-track-row.completed {
+	opacity: 0.85;
+}
+
+.sd-track-num {
+	font-size: 12px;
+	font-weight: 600;
+	color: #71717a;
+	width: 24px;
+	text-align: center;
+	flex-shrink: 0;
+}
+
+.sd-track-cover-mini {
+	width: 32px;
+	height: 32px;
+	border-radius: 6px;
+	object-fit: cover;
+	background: #27272a;
+	flex-shrink: 0;
+}
+
+.sd-track-details {
+	flex: 1;
+	min-width: 0;
+}
+
+.sd-track-row-title {
+	font-size: 13px;
+	font-weight: 600;
+	color: #f4f4f5;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sd-track-row-artist {
+	font-size: 11px;
+	color: #a1a1aa;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sd-track-error-msg {
+	font-size: 10px;
+	color: var(--sd-error);
+	margin-top: 2px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sd-status-badge {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 11px;
+	font-weight: 600;
+	padding: 4px 8px;
+	border-radius: 8px;
+	flex-shrink: 0;
+}
+
+.sd-status-badge.queued {
+	background: rgba(255, 255, 255, 0.06);
+	color: #a1a1aa;
+}
+
+.sd-status-badge.downloading {
+	background: rgba(158, 70, 255, 0.2);
+	color: var(--sd-primary-hover);
+	border: 1px solid rgba(158, 70, 255, 0.4);
+	animation: sdPulse 1.5s infinite alternate;
+}
+
+@keyframes sdPulse {
+	from {
+		box-shadow: 0 0 4px rgba(158, 70, 255, 0.2);
+	}
+	to {
+		box-shadow: 0 0 10px rgba(158, 70, 255, 0.6);
+	}
+}
+
+.sd-status-badge.completed {
+	background: rgba(16, 185, 129, 0.15);
+	color: var(--sd-success);
+}
+
+.sd-status-badge.error {
+	background: rgba(244, 63, 94, 0.15);
+	color: var(--sd-error);
+}
+
+.sd-status-badge.cancelled {
+	background: rgba(245, 158, 11, 0.15);
+	color: var(--sd-warning);
+}
+
+.sd-retry-btn {
+	background: rgba(244, 63, 94, 0.2);
+	border: 1px solid rgba(244, 63, 94, 0.4);
+	color: #fff;
+	border-radius: 6px;
+	padding: 4px 8px;
+	font-size: 11px;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.sd-retry-btn:hover {
+	background: var(--sd-error);
+}
+
+/* Footer Controls */
+.sd-footer {
+	padding: 14px 20px;
+	background: rgba(255, 255, 255, 0.02);
+	border-top: 1px solid var(--sd-border);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.sd-footer-left {
+	display: flex;
+	gap: 8px;
+}
+
+.sd-btn {
+	padding: 8px 14px;
+	border-radius: 10px;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	border: 1px solid transparent;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	transition: all 0.15s ease;
+}
+
+.sd-btn.primary {
+	background: linear-gradient(135deg, var(--sd-primary), var(--sd-secondary));
+	color: #fff;
+	box-shadow: 0 4px 14px rgba(158, 70, 255, 0.3);
+}
+
+.sd-btn.primary:hover {
+	box-shadow: 0 6px 20px rgba(158, 70, 255, 0.5);
+	transform: translateY(-1px);
+}
+
+.sd-btn.secondary {
+	background: rgba(255, 255, 255, 0.08);
+	color: #e4e4e7;
+	border-color: var(--sd-border);
+}
+
+.sd-btn.secondary:hover {
+	background: rgba(255, 255, 255, 0.14);
+	color: #fff;
+}
+
+.sd-btn.danger {
+	background: rgba(244, 63, 94, 0.15);
+	color: var(--sd-error);
+	border-color: rgba(244, 63, 94, 0.3);
+}
+
+.sd-btn.danger:hover {
+	background: rgba(244, 63, 94, 0.25);
+	border-color: rgba(244, 63, 94, 0.5);
+}
+
+/* Floating Mini Widget (When Minimized) */
+.sd-mini-widget {
+	position: fixed;
+	bottom: 24px;
+	right: 24px;
+	z-index: 999999;
+	background: var(--sd-bg-dark);
+	border: 1px solid var(--sd-border-glow);
+	border-radius: 16px;
+	padding: 10px 14px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(158, 70, 255, 0.25);
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	cursor: pointer;
+	color: #fff;
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+	animation: sdSlideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+	max-width: 320px;
+}
+
+.sd-mini-widget:hover {
+	transform: translateY(-2px);
+	border-color: var(--sd-primary);
+	box-shadow: 0 14px 36px rgba(0, 0, 0, 0.7), 0 0 25px rgba(158, 70, 255, 0.4);
+}
+
+@keyframes sdSlideInRight {
+	from {
+		opacity: 0;
+		transform: translateX(30px) scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0) scale(1);
+	}
+}
+
+.sd-mini-ring {
+	position: relative;
+	width: 36px;
+	height: 36px;
+	flex-shrink: 0;
+}
+
+.sd-mini-ring svg {
+	transform: rotate(-90deg);
+}
+
+.sd-mini-ring circle {
+	fill: none;
+	stroke-width: 3.5;
+}
+
+.sd-mini-ring .bg {
+	stroke: rgba(255, 255, 255, 0.1);
+}
+
+.sd-mini-ring .progress {
+	stroke: url(#sd-gradient);
+	stroke-linecap: round;
+	transition: stroke-dashoffset 0.2s ease;
+}
+
+.sd-mini-ring-text {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 9px;
+	font-weight: 800;
+	color: #fff;
+}
+
+.sd-mini-info {
+	min-width: 0;
+	flex: 1;
+}
+
+.sd-mini-title {
+	font-size: 12px;
+	font-weight: 700;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: #fff;
+}
+
+.sd-mini-status {
+	font-size: 10px;
+	color: #a1a1aa;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

@@ -3,6 +3,7 @@ import { MediaItem, Quality, type redux } from "@luna/lib";
 import { LunaButtonSetting, LunaSelectItem, LunaSelectSetting, LunaSettings, LunaSwitchSetting, LunaTextSetting } from "@luna/ui";
 
 import React from "react";
+import { downloadManager } from "./downloadManager";
 import { getDownloadFolder } from "./helpers";
 
 const defaultFilenameFormat = "{artist} - {album} - {title}";
@@ -30,6 +31,12 @@ export const Settings = () => {
 
 	return (
 		<LunaSettings>
+			<LunaButtonSetting
+				title="Download Manager"
+				desc="Open the active download queue window to see downloads, progress, and errors"
+				children="Open Download Manager"
+				onClick={() => downloadManager.openModal()}
+			/>
 			<LunaSelectSetting
 				title="Download quality"
 				value={downloadQuality}
