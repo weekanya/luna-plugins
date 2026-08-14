@@ -48,11 +48,14 @@ export const DownloadModal: React.FC = () => {
 		totalCount,
 		overallPercent,
 		useRealMAX,
+		concurrentDownloads = 2,
 	} = state;
 
 	const activeTrack =
 		tracks.find((t) => t.id === activeTrackId) ||
-		tracks.find((t) => t.status === "downloading" || t.status === "checking");
+		tracks.find((t) => t.status === "downloading" || t.status === "checking") ||
+		tracks.find((t) => t.status === "queued");
+
 	const pendingCount = Math.max(0, totalCount - completedCount - errorCount);
 
 	// Dynamic Material You Theme based on active track cover
@@ -93,7 +96,7 @@ export const DownloadModal: React.FC = () => {
 				dragStartRef.current.hasMoved = true;
 			}
 
-			const newX = Math.max(10, Math.min(window.innerWidth - 320, dragStartRef.current.posX + dx));
+			const newX = Math.max(10, Math.min(window.innerWidth - 340, dragStartRef.current.posX + dx));
 			const newY = Math.max(10, Math.min(window.innerHeight - 70, dragStartRef.current.posY + dy));
 
 			setWidgetPos({ x: newX, y: newY });
@@ -113,7 +116,6 @@ export const DownloadModal: React.FC = () => {
 	if (isMinimized && tracks.length > 0) {
 		const radius = 14;
 		const circumference = 2 * Math.PI * radius;
-		// Use active track's current download percent as requested
 		const currentTrackPercent = activeTrack ? activeTrack.progressPercent : overallPercent || 0;
 		const strokeDashoffset = circumference - (currentTrackPercent / 100) * circumference;
 
@@ -137,6 +139,11 @@ export const DownloadModal: React.FC = () => {
 					}
 				}}
 			>
+				{activeTrack?.coverUrl ? (
+					<img className="sd-mini-cover" src={activeTrack.coverUrl} alt="" />
+				) : (
+					<div className="sd-mini-cover-placeholder">🎵</div>
+				)}
 				<div className="sd-mini-ring">
 					<svg width="38" height="38">
 						<circle className="bg" cx="19" cy="19" r={radius} />
@@ -154,12 +161,12 @@ export const DownloadModal: React.FC = () => {
 				<div className="sd-mini-info">
 					<div className="sd-mini-title">{activeTrack ? activeTrack.title : batchTitle}</div>
 					<div className="sd-mini-status">
-						{activeTrack
+						{activeTrack && activeTrack.status === "downloading"
 							? `${activeTrack.downloadedMB || "0"} / ${activeTrack.totalMB || "0"} MB (${activeTrack.progressPercent}%)`
 							: status === "running"
 								? `Downloading (${completedCount}/${totalCount})`
 								: status === "completed"
-									? `All ${completedCount} downloaded`
+									? `All ${completedCount} done`
 									: `${completedCount} done, ${errorCount} errors`}
 					</div>
 				</div>
@@ -195,7 +202,7 @@ export const DownloadModal: React.FC = () => {
 					<div className="sd-header-actions">
 						<button
 							className="sd-icon-btn"
-							title="Minimize"
+							title="Minimize to floating widget"
 							onClick={() => downloadManager.setMinimized(true)}
 						>
 							<MinimizeIcon size={18} />
@@ -210,7 +217,7 @@ export const DownloadModal: React.FC = () => {
 					</div>
 				</div>
 
-				{/* MD3 RealMAX Status Bar & Switch (Section 4.11) */}
+				{/* MD3 RealMAX & Concurrency Speed Bar */}
 				<div className="sd-realmax-bar">
 					<div className="sd-realmax-info">
 						<span className={`sd-realmax-badge ${useRealMAX ? "on" : "off"}`}>
@@ -226,12 +233,27 @@ export const DownloadModal: React.FC = () => {
 							</div>
 						</div>
 					</div>
-					<div
-						className={`md3-switch ${useRealMAX ? "checked" : ""}`}
-						title="Toggle RealMAX quality finder"
-						onClick={() => downloadManager.setRealMAX(!useRealMAX)}
-					>
-						<div className="md3-switch-thumb" />
+					<div className="sd-toolbar-controls">
+						{/* Concurrency Threads Selector in 1-Click */}
+						<button
+							className="sd-threads-btn"
+							title="Click to cycle parallel download threads (1x, 2x, 3x, 4x)"
+							onClick={() =>
+								downloadManager.setConcurrentDownloads(
+									concurrentDownloads >= 4 ? 1 : concurrentDownloads + 1,
+								)
+							}
+						>
+							<BoltIcon size={14} />
+							<span>{concurrentDownloads}x Threads</span>
+						</button>
+						<div
+							className={`md3-switch ${useRealMAX ? "checked" : ""}`}
+							title="Toggle RealMAX quality finder"
+							onClick={() => downloadManager.setRealMAX(!useRealMAX)}
+						>
+							<div className="md3-switch-thumb" />
+						</div>
 					</div>
 				</div>
 
@@ -255,7 +277,7 @@ export const DownloadModal: React.FC = () => {
 									{errorCount} Failed
 								</span>
 							)}
-							{pendingCount > 0 && status === "running" && (
+							{pendingCount > 0 && (status === "running" || status === "cancelling") && (
 								<span className="md3-chip neutral">
 									<ScheduleIcon size={14} />
 									{pendingCount} Remaining
@@ -269,7 +291,7 @@ export const DownloadModal: React.FC = () => {
 					</div>
 				</div>
 
-				{/* Active Track Highlight Card (MD3 Outlined Card 4.3 - Fixed Layout) */}
+				{/* Active Track Highlight Card (MD3 Outlined Card 4.3 - Never Collapses) */}
 				{activeTrack && (
 					<div className="sd-active-card">
 						{activeTrack.coverUrl ? (
@@ -328,7 +350,7 @@ export const DownloadModal: React.FC = () => {
 						</div>
 					) : (
 						tracks.map((track) => (
-							<TrackRow key={track.id} track={track} isActive={track.id === activeTrackId} />
+							<TrackRow key={track.id} track={track} isActive={track.id === activeTrack?.id} />
 						))
 					)}
 				</div>
@@ -336,10 +358,10 @@ export const DownloadModal: React.FC = () => {
 				{/* MD3 Dialog Actions (Section 4.1 Buttons: 40dp height, 20dp radius) */}
 				<div className="sd-footer">
 					<div className="sd-footer-left">
-						{status === "running" && (
+						{(status === "running" || status === "cancelling") && (
 							<button className="md3-btn tonal-error" onClick={() => downloadManager.cancel()}>
 								<StopIcon size={16} />
-								Stop
+								{status === "cancelling" ? "Stopping..." : "Stop"}
 							</button>
 						)}
 						{errorCount > 0 && (

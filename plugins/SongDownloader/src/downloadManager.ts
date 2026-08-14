@@ -53,13 +53,14 @@ export interface QueueState {
 	batchTitle: string;
 	tracks: QueueTrack[];
 	activeTrackId?: string;
-	status: "idle" | "running" | "cancelling" | "completed" | "error";
+	status: "idle" | "running" | "cancelling" | "completed" | "error" | "cancelled";
 	downloadFolder?: string;
 	completedCount: number;
 	errorCount: number;
 	totalCount: number;
 	overallPercent: number;
 	useRealMAX: boolean;
+	concurrentDownloads: number;
 }
 
 class DownloadManager {
@@ -74,6 +75,7 @@ class DownloadManager {
 		totalCount: 0,
 		overallPercent: 0,
 		useRealMAX: settings.useRealMAX,
+		concurrentDownloads: settings.concurrentDownloads ?? 2,
 	};
 
 	private listeners = new Set<(state: QueueState) => void>();
@@ -85,6 +87,7 @@ class DownloadManager {
 		return {
 			...this.state,
 			useRealMAX: settings.useRealMAX,
+			concurrentDownloads: settings.concurrentDownloads ?? 2,
 		};
 	}
 
@@ -92,6 +95,16 @@ class DownloadManager {
 		settings.useRealMAX = enabled;
 		this.state.useRealMAX = enabled;
 		this.notify();
+	}
+
+	public setConcurrentDownloads(count: number) {
+		const val = Math.max(1, Math.min(4, count));
+		settings.concurrentDownloads = val;
+		this.state.concurrentDownloads = val;
+		this.notify();
+		if (this.state.status === "running") {
+			this.triggerQueue();
+		}
 	}
 
 	public subscribe(listener: (state: QueueState) => void): () => void {
@@ -111,6 +124,7 @@ class DownloadManager {
 		this.state.errorCount = error;
 		this.state.totalCount = total;
 		this.state.useRealMAX = settings.useRealMAX;
+		this.state.concurrentDownloads = settings.concurrentDownloads ?? 2;
 
 		if (total > 0) {
 			const sumPercent = this.state.tracks.reduce((acc, t) => {
@@ -122,7 +136,7 @@ class DownloadManager {
 			this.state.overallPercent = 0;
 		}
 
-		// Keep activeTrackId pointing to an active downloading/checking track
+		// Active track prioritize downloading first, then checking
 		const active =
 			this.state.tracks.find((t) => t.status === "downloading") ||
 			this.state.tracks.find((t) => t.status === "checking");
@@ -161,10 +175,22 @@ class DownloadManager {
 	}
 
 	public cancel() {
-		if (this.state.status === "running") {
+		if (this.state.status === "running" || this.state.status === "cancelling") {
 			this.cancelRequested = true;
 			this.state.status = "cancelling";
+			for (const t of this.state.tracks) {
+				if (t.status === "queued") {
+					t.status = "cancelled";
+					t.statusText = "Cancelled";
+				}
+			}
 			this.notify();
+
+			if (this.activeWorkers === 0) {
+				this.state.status = "cancelled";
+				this.cancelRequested = false;
+				this.notify();
+			}
 		}
 	}
 
@@ -178,9 +204,7 @@ class DownloadManager {
 	}
 
 	public clearAll() {
-		if (this.state.status === "running") {
-			this.cancel();
-		}
+		this.cancelRequested = true;
 		this.state.tracks = [];
 		this.state.activeTrackId = undefined;
 		this.state.status = "idle";
@@ -188,6 +212,7 @@ class DownloadManager {
 		this.state.errorCount = 0;
 		this.state.totalCount = 0;
 		this.state.overallPercent = 0;
+		this.cancelRequested = false;
 		this.notify();
 	}
 
@@ -200,6 +225,7 @@ class DownloadManager {
 		track.progressPercent = 0;
 		track.downloadedMB = "0";
 		track.totalMB = "0";
+		this.cancelRequested = false;
 		this.notify();
 
 		this.triggerQueue();
@@ -219,6 +245,7 @@ class DownloadManager {
 			}
 		}
 		if (hasFailed) {
+			this.cancelRequested = false;
 			this.notify();
 			this.triggerQueue();
 		}
@@ -307,15 +334,25 @@ class DownloadManager {
 		if (newTracks.length === 0) return;
 
 		this.state.tracks = [...this.state.tracks, ...newTracks];
+		this.cancelRequested = false;
 		this.notify();
 
 		this.triggerQueue();
 	}
 
 	/**
-	 * Worker pool trigger
+	 * Worker pool trigger with strict cancellation and concurrency control
 	 */
 	private triggerQueue() {
+		if (this.cancelRequested || this.state.status === "cancelling") {
+			if (this.activeWorkers === 0) {
+				this.state.status = "cancelled";
+				this.cancelRequested = false;
+				this.notify();
+			}
+			return;
+		}
+
 		const maxWorkers = Math.max(1, Math.min(4, settings.concurrentDownloads || 2));
 		const queuedCount = this.state.tracks.filter((t) => t.status === "queued").length;
 
@@ -329,11 +366,11 @@ class DownloadManager {
 		}
 
 		this.state.status = "running";
-		this.cancelRequested = false;
 
 		while (this.activeWorkers < maxWorkers) {
+			if (this.cancelRequested || this.state.status === "cancelling") break;
 			const nextTrack = this.state.tracks.find((t) => t.status === "queued");
-			if (!nextTrack || this.cancelRequested) break;
+			if (!nextTrack) break;
 
 			this.activeWorkers++;
 			nextTrack.status = "checking";
@@ -377,7 +414,7 @@ class DownloadManager {
 				track.formatInfo = formatAudioDetails(fmt);
 			}
 
-			if (this.cancelRequested) {
+			if (this.cancelRequested || this.state.status === "cancelling" || this.state.status === "cancelled") {
 				track.status = "cancelled";
 				track.statusText = "Cancelled";
 				this.notify();
@@ -411,6 +448,13 @@ class DownloadManager {
 				track.status = "completed";
 				track.progressPercent = 100;
 				track.statusText = track.formatInfo ? `Already downloaded (${track.formatInfo})` : "Already downloaded";
+				this.notify();
+				return;
+			}
+
+			if (this.cancelRequested || this.state.status === "cancelling" || this.state.status === "cancelled") {
+				track.status = "cancelled";
+				track.statusText = "Cancelled";
 				this.notify();
 				return;
 			}
