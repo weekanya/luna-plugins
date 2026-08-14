@@ -196,9 +196,14 @@ export const DownloadModal: React.FC = () => {
 									<div className="sd-active-title" title={activeTrack.title}>
 										{activeTrack.title}
 									</div>
-									{activeTrack.qualityName && (
-										<span className="sd-quality-badge">{activeTrack.qualityName}</span>
-									)}
+									<div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+										{activeTrack.qualityName && (
+											<span className="sd-quality-badge">{activeTrack.qualityName}</span>
+										)}
+										{activeTrack.formatInfo && (
+											<span className="sd-format-badge">{activeTrack.formatInfo}</span>
+										)}
+									</div>
 								</div>
 								<div className="sd-active-artist" title={activeTrack.artist}>
 									{activeTrack.artist} {activeTrack.album ? `• ${activeTrack.album}` : ""}
@@ -316,6 +321,11 @@ const TrackRow: React.FC<TrackRowProps> = ({ track, isActive }) => {
 				<div className="sd-track-row-artist" title={track.artist}>
 					{track.artist}
 				</div>
+				{track.formatInfo && (
+					<div className="sd-track-badges">
+						<span className="sd-format-badge">{track.formatInfo}</span>
+					</div>
+				)}
 				{track.error && <div className="sd-track-error-msg">{track.error}</div>}
 			</div>
 

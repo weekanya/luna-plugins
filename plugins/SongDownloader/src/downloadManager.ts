@@ -1,11 +1,30 @@
 import { Tracer, type LunaUnload } from "@luna/core";
-import { MediaItem, safeInterval, type MediaCollection } from "@luna/lib";
+import { MediaItem, safeInterval, type MediaCollection, type MediaFormat } from "@luna/lib";
 import { getDownloadFolder, getDownloadPath, getFileName } from "./helpers";
 import { settings } from "./Settings";
 
 const { trace } = Tracer("[SongDownloader:Manager]");
 
 export type TrackStatus = "queued" | "checking" | "downloading" | "completed" | "error" | "cancelled";
+
+export const formatAudioDetails = (format?: MediaFormat): string | undefined => {
+	if (!format) return undefined;
+	const parts: string[] = [];
+	if (format.bitDepth) {
+		parts.push(`${format.bitDepth}-bit`);
+	}
+	if (format.sampleRate) {
+		const kHz = (format.sampleRate / 1000).toFixed(format.sampleRate % 1000 === 0 ? 0 : 1);
+		parts.push(`${kHz} kHz`);
+	}
+	if (format.bitrate) {
+		const kbps = Math.round(format.bitrate / 1000);
+		parts.push(`${kbps} kbps`);
+	} else if (format.codec) {
+		parts.push(format.codec.toUpperCase());
+	}
+	return parts.length > 0 ? parts.join(" • ") : undefined;
+};
 
 export interface QueueTrack {
 	id: string;
@@ -15,6 +34,8 @@ export interface QueueTrack {
 	album?: string;
 	coverUrl?: string;
 	qualityName?: string;
+	formatInfo?: string;
+	audioFormat?: MediaFormat;
 	status: TrackStatus;
 	statusText?: string;
 	progressPercent: number;
@@ -262,6 +283,18 @@ class DownloadManager {
 					})
 					.catch(() => {});
 
+				// Pre-fetch format info if already available in cache
+				mediaItem
+					.updateFormat(settings.downloadQuality)
+					.then((fmt) => {
+						if (fmt) {
+							trackItem.audioFormat = fmt;
+							trackItem.formatInfo = formatAudioDetails(fmt);
+							this.notify();
+						}
+					})
+					.catch(() => {});
+
 				newTracks.push(trackItem);
 			}
 		} catch (err) {
@@ -335,10 +368,17 @@ class DownloadManager {
 				}
 			}
 
-			// Update track info if changed
+			// Update track info & format
 			track.qualityName = mediaItem.bestQuality?.name ?? track.qualityName;
 			if (!track.coverUrl) {
 				track.coverUrl = await mediaItem.coverUrl({ res: "160" }).catch(() => undefined);
+			}
+
+			// Fetch exact audio format specs (bit depth, sample rate, bitrate)
+			const fmt = await mediaItem.updateFormat(settings.downloadQuality).catch(() => undefined);
+			if (fmt) {
+				track.audioFormat = fmt;
+				track.formatInfo = formatAudioDetails(fmt);
 			}
 
 			if (this.cancelRequested) {
@@ -401,9 +441,18 @@ class DownloadManager {
 				stopProgress = true;
 				progressInterval();
 
+				// Ensure format info is populated on complete
+				if (!track.formatInfo) {
+					const finalFmt = await mediaItem.updateFormat(settings.downloadQuality).catch(() => undefined);
+					if (finalFmt) {
+						track.audioFormat = finalFmt;
+						track.formatInfo = formatAudioDetails(finalFmt);
+					}
+				}
+
 				track.status = "completed";
 				track.progressPercent = 100;
-				track.statusText = "Completed";
+				track.statusText = track.formatInfo ? `Downloaded (${track.formatInfo})` : "Completed";
 				track.filePath = Array.isArray(path) ? path.join("/") : path;
 			} catch (downloadErr) {
 				stopProgress = true;
