@@ -106,12 +106,12 @@ export const animateThemeTo = (targetPalette: M3ThemePalette, duration = 600) =>
 			onPrimary: lerpColor(startPalette.onPrimary, targetPalette.onPrimary),
 			primaryContainer: lerpColor(startPalette.primaryContainer, targetPalette.primaryContainer),
 			onPrimaryContainer: lerpColor(startPalette.onPrimaryContainer, targetPalette.onPrimaryContainer),
-			surface: lerpColor(startPalette.surface, targetPalette.surface),
-			surfaceContainerLow: lerpColor(startPalette.surfaceContainerLow, targetPalette.surfaceContainerLow),
-			surfaceContainer: lerpColor(startPalette.surfaceContainer, targetPalette.surfaceContainer),
-			surfaceContainerHigh: lerpColor(startPalette.surfaceContainerHigh, targetPalette.surfaceContainerHigh),
-			surfaceContainerHighest: lerpColor(startPalette.surfaceContainerHighest, targetPalette.surfaceContainerHighest),
-			outlineVariant: lerpColor(startPalette.outlineVariant, targetPalette.outlineVariant),
+			surface: defaultM3DarkPalette.surface,
+			surfaceContainerLow: defaultM3DarkPalette.surfaceContainerLow,
+			surfaceContainer: defaultM3DarkPalette.surfaceContainer,
+			surfaceContainerHigh: defaultM3DarkPalette.surfaceContainerHigh,
+			surfaceContainerHighest: defaultM3DarkPalette.surfaceContainerHighest,
+			outlineVariant: defaultM3DarkPalette.outlineVariant,
 		};
 
 		applyPaletteToRoot(currentThemePalette);
@@ -194,7 +194,7 @@ export const extractM3Palette = async (coverUrl: string): Promise<M3ThemePalette
 						}
 					}
 
-					// Harmonious Material Design 3 HCT Dark Palette
+					// Harmonious Material Design 3 HCT Dark Palette (Clean solid surfaces + dynamic accents)
 					const primary: [number, number, number] = [
 						Math.min(255, Math.max(170, Math.round(bestR * 1.1 + 25))),
 						Math.min(255, Math.max(160, Math.round(bestG * 1.1 + 25))),
@@ -219,53 +219,17 @@ export const extractM3Palette = async (coverUrl: string): Promise<M3ThemePalette
 						Math.min(255, Math.round(bestB * 1.25 + 45)),
 					];
 
-					const surface: [number, number, number] = [
-						Math.round(18 + bestR * 0.03),
-						Math.round(16 + bestG * 0.03),
-						Math.round(22 + bestB * 0.03),
-					];
-
-					const surfaceContainerLow: [number, number, number] = [
-						Math.round(25 + bestR * 0.04),
-						Math.round(23 + bestG * 0.04),
-						Math.round(30 + bestB * 0.04),
-					];
-
-					const surfaceContainer: [number, number, number] = [
-						Math.round(30 + bestR * 0.05),
-						Math.round(28 + bestG * 0.05),
-						Math.round(36 + bestB * 0.05),
-					];
-
-					const surfaceContainerHigh: [number, number, number] = [
-						Math.round(38 + bestR * 0.06),
-						Math.round(36 + bestG * 0.06),
-						Math.round(46 + bestB * 0.06),
-					];
-
-					const surfaceContainerHighest: [number, number, number] = [
-						Math.round(48 + bestR * 0.07),
-						Math.round(46 + bestG * 0.07),
-						Math.round(58 + bestB * 0.07),
-					];
-
-					const outlineVariant: [number, number, number] = [
-						Math.round(65 + bestR * 0.08),
-						Math.round(60 + bestG * 0.08),
-						Math.round(75 + bestB * 0.08),
-					];
-
 					resolve({
 						primary,
 						onPrimary,
 						primaryContainer,
 						onPrimaryContainer,
-						surface,
-						surfaceContainerLow,
-						surfaceContainer,
-						surfaceContainerHigh,
-						surfaceContainerHighest,
-						outlineVariant,
+						surface: defaultM3DarkPalette.surface,
+						surfaceContainerLow: defaultM3DarkPalette.surfaceContainerLow,
+						surfaceContainer: defaultM3DarkPalette.surfaceContainer,
+						surfaceContainerHigh: defaultM3DarkPalette.surfaceContainerHigh,
+						surfaceContainerHighest: defaultM3DarkPalette.surfaceContainerHighest,
+						outlineVariant: defaultM3DarkPalette.outlineVariant,
 					});
 				} catch (err) {
 					if (isBlob) URL.revokeObjectURL(blobUrl);
