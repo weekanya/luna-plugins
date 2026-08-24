@@ -5,6 +5,7 @@ import {
 	fileExists,
 	getNativeDownloadProgress,
 	nativeDownloadTrack,
+	cancelNativeDownload,
 	saveLyricsFile,
 	saveTextFile,
 	verifyAudioFileIntegrity,
@@ -53,6 +54,7 @@ export interface QueueTrack {
 	error?: string;
 	filePath?: string;
 	mediaItem: MediaItem;
+	downloadFolder?: string;
 }
 
 export interface QueueState {
@@ -91,6 +93,8 @@ class DownloadManager {
 	private listeners = new Set<(state: QueueState) => void>();
 	private cancelRequested = false;
 	private activeWorkers = 0;
+	private activeNativeIds = new Set<string | number>();
+	private generation = 0;
 	public unloads = new Set<LunaUnload>();
 
 	public getState(): QueueState {
@@ -209,6 +213,7 @@ class DownloadManager {
 			}
 		}
 		this.notify();
+		void Promise.all([...this.activeNativeIds].map((id) => cancelNativeDownload(id)));
 
 		if (this.activeWorkers === 0) {
 			this.state.status = "cancelled";
@@ -219,6 +224,7 @@ class DownloadManager {
 
 	public clearFinished() {
 		this.state.tracks = this.state.tracks.filter((t) => t.status !== "completed" && t.status !== "cancelled");
+		this.state.tracks.forEach((track, index) => { track.index = index + 1; });
 		if (this.state.tracks.length === 0) {
 			this.state.status = "idle";
 			this.state.activeTrackId = undefined;
@@ -228,6 +234,8 @@ class DownloadManager {
 
 	public clearAll() {
 		this.cancelRequested = true;
+		this.generation++;
+		void Promise.all([...this.activeNativeIds].map((id) => cancelNativeDownload(id)));
 		this.state.tracks = [];
 		this.state.activeTrackId = undefined;
 		this.state.status = "idle";
@@ -235,7 +243,7 @@ class DownloadManager {
 		this.state.errorCount = 0;
 		this.state.totalCount = 0;
 		this.state.overallPercent = 0;
-		this.cancelRequested = false;
+		// Keep cancellation asserted until current workers have observed it.
 		this.notify();
 	}
 
@@ -309,6 +317,7 @@ class DownloadManager {
 	 * Start downloading a collection of media items
 	 */
 	public async startDownload(mediaCollection: MediaCollection, customTitle?: string) {
+		this.generation++;
 		const count = await mediaCollection.count().catch(() => 0);
 		if (count === 0) return;
 
@@ -354,13 +363,14 @@ class DownloadManager {
 					downloadedMB: "0",
 					totalMB: "0",
 					mediaItem,
+					downloadFolder,
 				};
 
 				// Pre-fetch cover url asynchronously
 				mediaItem
 					.coverUrl({ res: "160" })
 					.then((url) => {
-						if (url) {
+						if (url && this.state.tracks.includes(trackItem)) {
 							trackItem.coverUrl = url;
 							this.notify();
 						}
@@ -371,7 +381,7 @@ class DownloadManager {
 				mediaItem
 					.updateFormat(settings.downloadQuality)
 					.then((fmt) => {
-						if (fmt) {
+						if (fmt && this.state.tracks.includes(trackItem)) {
 							trackItem.audioFormat = fmt;
 							trackItem.formatInfo = formatAudioDetails(fmt);
 							this.notify();
@@ -407,7 +417,7 @@ class DownloadManager {
 			return;
 		}
 
-		const maxWorkers = Math.max(1, Math.min(4, settings.concurrentDownloads || 2));
+		const maxWorkers = this.state.downloadFolder === undefined ? 1 : Math.max(1, Math.min(4, settings.concurrentDownloads || 2));
 		const queuedCount = this.state.tracks.filter((t) => t.status === "queued").length;
 
 		if (queuedCount === 0 && this.activeWorkers === 0) {
@@ -430,8 +440,10 @@ class DownloadManager {
 			nextTrack.status = "checking";
 			this.notify();
 
+			const generation = this.generation;
 			this.downloadSingleTrack(nextTrack).finally(() => {
 				this.activeWorkers--;
+				if (generation !== this.generation) return;
 				this.notify();
 				this.triggerQueue();
 			});
@@ -489,8 +501,9 @@ class DownloadManager {
 			}
 
 			let path: string | string[] | undefined;
-			if (this.state.downloadFolder !== undefined) {
-				path = [this.state.downloadFolder, fileName];
+			const folder = track.downloadFolder ?? this.state.downloadFolder;
+			if (folder !== undefined) {
+				path = [folder, fileName];
 			} else {
 				path = await getDownloadPath(fileName);
 			}
@@ -563,7 +576,9 @@ class DownloadManager {
 
 			try {
 				// True parallel native download
+				this.activeNativeIds.add(playbackInfo.trackId);
 				await nativeDownloadTrack(playbackInfo, path, flacTags);
+				this.activeNativeIds.delete(playbackInfo.trackId);
 				stopProgress = true;
 				progressInterval();
 
@@ -605,6 +620,7 @@ class DownloadManager {
 				track.progressPercent = 100;
 				track.statusText = track.formatInfo ? `Verified (${track.formatInfo})` : "Completed & Verified";
 			} catch (downloadErr) {
+				this.activeNativeIds.delete(playbackInfo.trackId);
 				stopProgress = true;
 				progressInterval();
 				throw downloadErr;

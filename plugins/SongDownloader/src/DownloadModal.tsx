@@ -136,6 +136,10 @@ export const DownloadModal: React.FC = () => {
 				className={`sd-mini-widget ${isDragging ? "dragging" : ""}`}
 				style={widgetStyle}
 				onPointerDown={handlePointerDown}
+				tabIndex={0}
+				role="button"
+				aria-label="Open download manager"
+				onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") downloadManager.openModal(); }}
 				onClick={() => {
 					if (!dragStartRef.current.hasMoved) {
 						downloadManager.openModal();
@@ -205,6 +209,7 @@ export const DownloadModal: React.FC = () => {
 					<div className="sd-header-actions">
 						<button
 							className="sd-icon-btn"
+							aria-label="Minimize download manager"
 							title="Minimize to floating widget"
 							onClick={() => downloadManager.setMinimized(true)}
 						>
@@ -212,6 +217,7 @@ export const DownloadModal: React.FC = () => {
 						</button>
 						<button
 							className="sd-icon-btn close"
+							aria-label="Close download manager"
 							title="Close dialog"
 							onClick={() => downloadManager.closeModal()}
 						>

@@ -10,9 +10,10 @@ export const getDownloadFolder = async () => {
 };
 
 export const getDownloadPath = async (defaultPath: string) => {
+	const extension = defaultPath.split(".").pop()?.toLowerCase() || "*";
 	const { canceled, filePath } = await showSaveDialog({
 		defaultPath,
-		filters: [{ name: "", extensions: [defaultPath ?? "*"] }],
+		filters: [{ name: "Audio", extensions: [extension] }],
 	});
 	if (!canceled && filePath) return filePath;
 };
@@ -29,12 +30,13 @@ export const getFileName = async (mediaItem: MediaItem, audioQuality?: redux.Aud
 		format = format.replaceAll(`{${tag}}`, sanitize(String(tagValue)));
 	}
 
-	// Remove unreplaced placeholders
+	// Remove unreplaced placeholders and constrain user-controlled path segments.
 	format = format.replace(/\{[a-zA-Z0-9_]+\}/g, "").trim();
+	format = format.replaceAll("\\", "/").split("/").map((segment) => sanitize(segment).replace(/^\.+$/, "").trim()).filter(Boolean).filter((segment) => segment !== "." && segment !== "..").join("/");
 
 	// If empty after formatting, fallback to safe title
 	if (!format) {
-		format = sanitize(mediaItem.tidalItem.title || `Track-${mediaItem.id}`);
+		format = sanitize(mediaItem.tidalItem.title || "Track-" + mediaItem.id) || "Track-" + mediaItem.id;
 	}
 
 	return `${format}.${ext}`;

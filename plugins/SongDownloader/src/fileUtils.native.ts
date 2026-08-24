@@ -1,5 +1,5 @@
 import sanitize from "sanitize-filename";
-import { createWriteStream } from "fs";
+import { createWriteStream, type Writable } from "fs";
 import { access, constants, mkdir, open, stat, unlink, writeFile } from "fs/promises";
 import { join, parse } from "path";
 import { fetchMediaItemStream, type FetchProgress } from "@luna/lib.native";
@@ -40,8 +40,8 @@ export const verifyAudioFileIntegrity = async (path: string | string[]): Promise
 		const filePath = Array.isArray(path) ? join(...path) : path;
 		const fileStat = await stat(filePath).catch(() => null);
 
-		if (!fileStat || fileStat.size < 4096) {
-			return { isValid: false, error: "File is empty or truncated (< 4 KB)", size: fileStat?.size };
+		if (!fileStat || fileStat.size < 128) {
+			return { isValid: false, error: "File is empty or truncated (< 128 bytes)", size: fileStat?.size };
 		}
 
 		const fileHandle = await open(filePath, "r");
@@ -57,7 +57,7 @@ export const verifyAudioFileIntegrity = async (path: string | string[]): Promise
 				return { isValid: false, error: "Missing STREAMINFO block in FLAC header", format: "flac" };
 			}
 			const blockLength = (buffer[5] << 16) | (buffer[6] << 8) | buffer[7];
-			if (blockLength !== 34) {
+			if (blockLength !== 34 || fileStat.size < 8 + blockLength) {
 				return { isValid: false, error: "Invalid FLAC STREAMINFO header length", format: "flac" };
 			}
 			return { isValid: true, format: "flac", size: fileStat.size };
@@ -66,6 +66,8 @@ export const verifyAudioFileIntegrity = async (path: string | string[]): Promise
 		// 2. Check for M4A / MP4 ("ftyp" atom at offset 4)
 		const ftyp = buffer.toString("ascii", 4, 8);
 		if (ftyp === "ftyp") {
+			const atomSize = buffer.readUInt32BE(0);
+			if (atomSize !== 0 && atomSize < 8) return { isValid: false, error: "Invalid MP4 atom size", format: "m4a" };
 			return { isValid: true, format: "m4a", size: fileStat.size };
 		}
 
@@ -97,7 +99,7 @@ export const saveTextFile = async (
 	try {
 		const targetDir = folderPath || process.env.HOME || "/tmp";
 		await mkdir(targetDir, { recursive: true });
-		const cleanName = sanitize(fileName);
+		const cleanName = sanitize(fileName) || "export.txt";
 		const fullPath = join(targetDir, cleanName);
 		await writeFile(fullPath, content, "utf8");
 		return fullPath;
@@ -107,7 +109,8 @@ export const saveTextFile = async (
 	}
 };
 
-const activeDownloads: Record<string | number, { progress: FetchProgress; promise: Promise<void> } | undefined> = {};
+type ActiveDownload = { progress: FetchProgress; promise: Promise<void>; reject: (reason?: unknown) => void; stream?: any; writeStream?: Writable; targetPath: string; settled: boolean };
+const activeDownloads: Record<string | number, ActiveDownload | undefined> = {};
 
 export const getNativeDownloadProgress = async (trackId: string | number): Promise<FetchProgress | undefined> => {
 	return activeDownloads[trackId]?.progress;
@@ -120,26 +123,52 @@ export const nativeDownloadTrack = async (
 ): Promise<void> => {
 	const trackId = playbackInfo.trackId;
 	if (activeDownloads[trackId] !== undefined) return activeDownloads[trackId]!.promise;
+	if (Array.isArray(path)) path = join(...path);
+	const parsedPath = parse(path);
+	await mkdir(parsedPath.dir, { recursive: true });
+	const targetPath = join(parsedPath.dir, sanitize(parsedPath.base));
+	const writeStream = createWriteStream(targetPath);
+	const progress: FetchProgress = { total: 0, downloaded: 0 };
+	const { resolve, reject, promise } = Promise.withResolvers<void>();
+	const entry: ActiveDownload = { progress, promise, reject, writeStream, targetPath, settled: false };
+	activeDownloads[trackId] = entry;
+
+	const fail = (error: unknown) => {
+		if (entry.settled) return;
+		entry.settled = true;
+		try { writeStream.destroy(); } catch {}
+		reject(error instanceof Error ? error : new Error(String(error)));
+	};
+	writeStream.once("finish", () => {
+		if (!entry.settled) { entry.settled = true; resolve(); }
+	});
+	writeStream.once("error", fail);
 
 	try {
-		if (Array.isArray(path)) path = join(...path);
-		const parsedPath = parse(path);
-		await mkdir(parsedPath.dir, { recursive: true });
-		const writeStream = createWriteStream(join(parsedPath.dir, sanitize(parsedPath.base)));
-
-		const progress: FetchProgress = { total: 0, downloaded: 0 };
-		const stream = await fetchMediaItemStream(playbackInfo, {
-			progress,
-			tags,
-		});
-
-		const { resolve, reject, promise } = Promise.withResolvers<void>();
-		activeDownloads[trackId] = { progress, promise };
-
-		stream.pipe(writeStream).on("finish", resolve).on("error", reject);
-
+		const stream = await fetchMediaItemStream(playbackInfo, { progress, tags });
+		entry.stream = stream;
+		stream.once?.("error", fail);
+		stream.pipe(writeStream);
 		await promise;
+	} catch (error) {
+		fail(error);
+		await promise.catch(() => undefined);
+		await unlink(targetPath).catch(() => undefined);
+		throw error;
 	} finally {
 		delete activeDownloads[trackId];
 	}
+};
+
+/** Abort a native download and remove its partial output. */
+export const cancelNativeDownload = async (trackId: string | number): Promise<void> => {
+	const entry = activeDownloads[trackId];
+	if (!entry) return;
+	try { entry.stream?.destroy?.(new Error("Download cancelled")); } catch {}
+	try { entry.writeStream?.destroy?.(new Error("Download cancelled")); } catch {}
+	if (!entry.settled) {
+		entry.settled = true;
+		entry.reject(new Error("Download cancelled"));
+	}
+	await unlink(entry.targetPath).catch(() => undefined);
 };
