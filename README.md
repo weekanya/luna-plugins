@@ -11,6 +11,9 @@ Download Tidal tracks, albums, and playlists as high-quality FLAC files with a b
 - Complete queue management (retry failed tracks, clear history, cancel/resume)
 - Canonical Google Material Symbols and dark theme palette
 
+### 📁 Local Tracks
+On a playlist page a **＋ Local track** button appears. Add a track that is missing from Tidal from a local file or a direct audio link; it's stored on this device and played through a built-in player (Tidal playback is paused automatically).
+
 ---
 
 ## 🚀 How to Install in TidaLuna

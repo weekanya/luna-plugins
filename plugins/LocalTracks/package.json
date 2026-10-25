@@ -1,0 +1,11 @@
+{
+	"name": "Local Tracks",
+	"description": "Add your own local tracks (file or direct link) to a Tidal playlist when they are missing from Tidal.",
+	"homepage": "https://github.com/weekanya/luna-plugins#LocalTracks",
+	"author": {
+		"name": "weekanya",
+		"url": "https://github.com/weekanya",
+		"avatarUrl": "https://github.com/weekanya.png"
+	},
+	"main": "./src/index.tsx"
+}
